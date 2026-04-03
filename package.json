@@ -24,11 +24,11 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "@neondatabase/serverless": "^0.6.0",
-    "drizzle-orm": "^0.29.0",
-    "drizzle-kit": "^0.20.0"
+    "drizzle-orm": "^0.29.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "drizzle-kit": "^0.20.0"
   },
   "engines": {
     "node": ">=14.0.0"
