@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm cache:*)",
+      "Bash(wmic logicaldisk:*)",
+      "Bash(npm config:*)",
+      "Bash(node src/utils/migrate.js)"
+    ]
+  }
+}
