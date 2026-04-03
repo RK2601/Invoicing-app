@@ -1114,7 +1114,7 @@ async function downloadPDF(docType) {
     await new Promise(r => setTimeout(r, 200));
 
     const canvas = await html2canvas(shell, {
-      scale: 1.5, useCORS: true, allowTaint: true,
+      scale: 2, useCORS: true, allowTaint: true,
       backgroundColor: bgColor, logging: false,
       width: 794, height: 1123, windowWidth: 794,
     });
@@ -1123,7 +1123,7 @@ async function downloadPDF(docType) {
     scaler.style.marginBottom = 'calc((794px * 0.78 - 794px) * 0.5)';
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.88), 'JPEG', 0, 0, 210, 297);
     pdf.save(filename);
     await saveToDatabase(docType);
   } catch (err) {
