@@ -25,6 +25,78 @@ body {
   min-height: 100vh;
 }
 
+/* ===== AUTH OVERLAY ===== */
+.auth-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(8, 12, 28, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-overlay.hidden { display: none; }
+.auth-card {
+  background: #0d1526;
+  border: 1px solid #1e2d50;
+  border-radius: 16px;
+  width: 420px;
+  padding: 40px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+.auth-brand {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+}
+.auth-brand-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: linear-gradient(135deg, #3b5bdb, #1a3bbd);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 18px; color: #fff;
+}
+.auth-brand-text h2 { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+.auth-brand-text p { font-size: 11px; color: #5577aa; margin-top: 1px; }
+.auth-tabs {
+  display: flex; gap: 4px; margin-bottom: 28px;
+  background: #070d1d; border-radius: 8px; padding: 4px;
+}
+.auth-tab {
+  flex: 1; padding: 9px; border: none; background: none;
+  font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600;
+  color: #5577aa; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+}
+.auth-tab.active { background: #1e2d50; color: #7aa2ff; }
+.auth-field { margin-bottom: 14px; }
+.auth-field label {
+  display: block; font-size: 10px; font-weight: 600;
+  color: #7890b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
+}
+.auth-field input {
+  width: 100%; background: #070d1d; border: 1px solid #1e2d50;
+  border-radius: 8px; padding: 11px 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: #e8eaf2;
+  outline: none; transition: border-color 0.2s;
+}
+.auth-field input:focus { border-color: #3b5bdb; background: #0d1838; }
+.auth-submit {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, #3b5bdb, #2a46c0);
+  border: none; border-radius: 8px;
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+  color: #fff; cursor: pointer; margin-top: 6px; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(59,91,219,0.3);
+}
+.auth-submit:hover { background: linear-gradient(135deg, #2a46c0, #1e3399); transform: translateY(-1px); }
+.auth-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.auth-error {
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 7px; padding: 10px 14px;
+  font-size: 12px; color: #f87171; margin-bottom: 14px; display: none;
+}
+.auth-divider {
+  text-align: center; font-size: 11px; color: #3a4a70;
+  margin: 20px 0 0;
+}
+.auth-divider span { color: #5577aa; cursor: pointer; }
+.auth-divider span:hover { color: #7aa2ff; }
+
 /* ===== MODE TABS ===== */
 .mode-tabs {
   display: flex;
@@ -56,6 +128,108 @@ body {
 .mode-tab:hover { color: #a0b4d8; }
 .mode-tab.active-inv { color: #7aa2ff; border-bottom-color: #3b5bdb; }
 .mode-tab.active-quot { color: var(--gold-light); border-bottom-color: var(--gold); }
+.tabs-spacer { flex: 1; }
+.auth-nav { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+.btn-nav-login {
+  padding: 6px 14px; border-radius: 6px; font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: none; border: 1px solid #2a3a60; color: #7890b8;
+}
+.btn-nav-login:hover { border-color: #3b5bdb; color: #7aa2ff; }
+.btn-nav-signup {
+  padding: 6px 14px; border-radius: 6px; font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: #3b5bdb; border: none; color: #fff;
+}
+.btn-nav-signup:hover { background: #2a46c0; }
+.user-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: #0d1838; border: 1px solid #1e2d50;
+  border-radius: 8px; padding: 5px 10px 5px 5px; cursor: default;
+}
+.user-avatar {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: linear-gradient(135deg, #3b5bdb, #1a3bbd);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 700; color: #fff;
+}
+.user-name { font-size: 11px; font-weight: 600; color: #a0b4d8; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-my-docs {
+  padding: 6px 12px; border-radius: 6px; font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: #1a2340; border: 1px solid #2a3a60; color: #7aa2ff;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-my-docs:hover { background: #1e2a50; border-color: #3b5bdb; }
+.btn-logout {
+  padding: 6px 10px; border-radius: 6px; font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: none; border: 1px solid #2a3a60; color: #5577aa;
+}
+.btn-logout:hover { border-color: #e55; color: #f87171; }
+
+/* ===== MY DOCS MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(8, 12, 28, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-overlay.hidden { display: none; }
+.docs-modal {
+  background: #0d1526; border: 1px solid #1e2d50;
+  border-radius: 16px; width: 680px; max-height: 80vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+.docs-modal-header {
+  padding: 22px 28px 0; display: flex; align-items: center; justify-content: space-between;
+}
+.docs-modal-header h3 { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
+.docs-modal-header p { font-size: 11px; color: #5577aa; margin-top: 2px; }
+.btn-close-modal {
+  background: #1a2340; border: 1px solid #2a3a60; border-radius: 7px;
+  color: #7890b8; font-size: 16px; width: 32px; height: 32px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.btn-close-modal:hover { border-color: #e55; color: #f87171; }
+.docs-modal-tabs {
+  display: flex; gap: 4px; padding: 16px 28px 0;
+}
+.docs-modal-tab {
+  padding: 8px 16px; border: none; background: #070d1d;
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600;
+  color: #5577aa; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+}
+.docs-modal-tab.active-inv { background: #1a2a5e; color: #7aa2ff; }
+.docs-modal-tab.active-quot { background: #2a1a00; color: var(--gold-light); }
+.docs-modal-body { overflow-y: auto; padding: 16px 28px 28px; flex: 1; }
+.doc-list { display: flex; flex-direction: column; gap: 8px; }
+.doc-item {
+  background: #070d1d; border: 1px solid #1e2d50;
+  border-radius: 10px; padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 12px; transition: border-color 0.2s;
+}
+.doc-item:hover { border-color: #2a3a70; }
+.doc-item-num { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #e8eaf2; }
+.doc-item-client { font-size: 12px; color: #7890b8; margin-top: 2px; }
+.doc-item-date { font-size: 10px; color: #3a4a70; margin-top: 4px; }
+.doc-item-amount { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #7aa2ff; text-align: right; }
+.doc-item-amount.gold { color: var(--gold-light); }
+.doc-item-sub { font-size: 10px; color: #3a4a70; text-align: right; margin-top: 2px; }
+.btn-del-doc {
+  background: none; border: none; color: #3a4a70; cursor: pointer;
+  font-size: 14px; padding: 4px; border-radius: 4px; transition: color 0.2s;
+}
+.btn-del-doc:hover { color: #f87171; }
+.docs-empty {
+  text-align: center; padding: 48px 0; color: #3a4a70;
+  font-size: 13px;
+}
+.docs-empty .empty-icon { font-size: 36px; margin-bottom: 10px; }
+.docs-loading { text-align: center; padding: 32px; color: #5577aa; font-size: 12px; }
 
 /* ===== APP LAYOUT ===== */
 .app {
@@ -390,6 +564,62 @@ body {
 </head>
 <body>
 
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">W</div>
+      <div class="auth-brand-text">
+        <h2>WiseMatic</h2>
+        <p>Invoice & Quotation Generator</p>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-form-login">
+      <div class="auth-field"><label>Email Address</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-password" placeholder="Your password" autocomplete="current-password"></div>
+      <button class="auth-submit" id="btn-login" onclick="doLogin()">Sign In</button>
+      <div class="auth-divider">Don't have an account? <span onclick="switchAuthTab('register')">Create one free</span></div>
+    </div>
+    <div id="auth-form-register" style="display:none;">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your full name" autocomplete="name"></div>
+      <div class="auth-field"><label>Email Address</label><input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
+      <button class="auth-submit" id="btn-register" onclick="doRegister()">Create Account</button>
+      <div class="auth-divider">Already have an account? <span onclick="switchAuthTab('login')">Sign in</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MY DOCS MODAL -->
+<div class="modal-overlay hidden" id="docs-modal-overlay">
+  <div class="docs-modal">
+    <div class="docs-modal-header">
+      <div>
+        <h3>My Documents</h3>
+        <p>Your saved invoices and quotations</p>
+      </div>
+      <button class="btn-close-modal" onclick="closeDocsModal()">✕</button>
+    </div>
+    <div class="docs-modal-tabs">
+      <button class="docs-modal-tab active-inv" id="docs-tab-inv" onclick="switchDocsTab('invoices')">
+        Invoices <span id="inv-count-badge" style="opacity:0.6;font-weight:400;"></span>
+      </button>
+      <button class="docs-modal-tab" id="docs-tab-quot" onclick="switchDocsTab('quotations')">
+        Quotations <span id="quot-count-badge" style="opacity:0.6;font-weight:400;"></span>
+      </button>
+    </div>
+    <div class="docs-modal-body">
+      <div id="docs-list-invoices" class="doc-list"></div>
+      <div id="docs-list-quotations" class="doc-list" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODE TABS -->
 <div class="mode-tabs">
   <button class="mode-tab active-inv" id="tab-inv" onclick="switchMode('invoice')">
@@ -400,6 +630,26 @@ body {
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
     Quotation Generator
   </button>
+  <div class="tabs-spacer"></div>
+  <div class="auth-nav" id="auth-nav">
+    <!-- Logged out state -->
+    <div id="nav-logged-out" style="display:flex;gap:8px;align-items:center;">
+      <button class="btn-nav-login" onclick="openAuth('login')">Sign In</button>
+      <button class="btn-nav-signup" onclick="openAuth('register')">Sign Up</button>
+    </div>
+    <!-- Logged in state -->
+    <div id="nav-logged-in" style="display:none;display:flex;gap:8px;align-items:center;">
+      <button class="btn-my-docs" onclick="openDocsModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        My Documents
+      </button>
+      <div class="user-badge">
+        <div class="user-avatar" id="nav-avatar">U</div>
+        <span class="user-name" id="nav-username">User</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
 </div>
 
 <div class="app">
@@ -1134,8 +1384,216 @@ async function downloadPDF(docType) {
   }
 }
 
+// ===== AUTH STATE =====
+let currentUser = null;
+
+function getToken() { return localStorage.getItem('wm_token'); }
+function setToken(t) { localStorage.setItem('wm_token', t); }
+function clearToken() { localStorage.removeItem('wm_token'); }
+
+function authHeaders() {
+  const t = getToken();
+  return t ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` }
+           : { 'Content-Type': 'application/json' };
+}
+
+async function checkAuth() {
+  const token = getToken();
+  if (!token) { showLoggedOut(); return; }
+  try {
+    const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    if (res.ok) {
+      currentUser = await res.json();
+      showLoggedIn(currentUser);
+    } else {
+      clearToken(); showLoggedOut();
+    }
+  } catch { clearToken(); showLoggedOut(); }
+}
+
+function showLoggedIn(user) {
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('nav-logged-out').style.display = 'none';
+  const loggedIn = document.getElementById('nav-logged-in');
+  loggedIn.style.display = 'flex';
+  document.getElementById('nav-username').textContent = user.name || user.email;
+  document.getElementById('nav-avatar').textContent = (user.name || user.email)[0].toUpperCase();
+}
+
+function showLoggedOut() {
+  currentUser = null;
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  document.getElementById('nav-logged-out').style.display = 'flex';
+  document.getElementById('nav-logged-in').style.display = 'none';
+}
+
+function openAuth(tab) {
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  switchAuthTab(tab);
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-tab-login').className = 'auth-tab' + (tab === 'login' ? ' active' : '');
+  document.getElementById('auth-tab-register').className = 'auth-tab' + (tab === 'register' ? ' active' : '');
+  document.getElementById('auth-form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-form-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showAuthError('Please fill in all fields');
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  document.getElementById('auth-error').style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError(data.error || 'Login failed');
+    setToken(data.token);
+    currentUser = data.user;
+    showLoggedIn(data.user);
+    showToast('Welcome back, ' + (data.user.name || data.user.email) + '!');
+  } catch { showAuthError('Network error. Please try again.'); }
+  finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!name || !email || !password) return showAuthError('Please fill in all fields');
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  document.getElementById('auth-error').style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError(data.error || 'Registration failed');
+    setToken(data.token);
+    currentUser = data.user;
+    showLoggedIn(data.user);
+    showToast('Account created! Welcome to WiseMatic.');
+  } catch { showAuthError('Network error. Please try again.'); }
+  finally { btn.disabled = false; btn.textContent = 'Create Account'; }
+}
+
+function doLogout() {
+  clearToken(); currentUser = null;
+  showLoggedOut();
+  showToast('Signed out successfully');
+}
+
+// ===== MY DOCUMENTS MODAL =====
+let docsData = { invoices: [], quotations: [] };
+let activeDocsTab = 'invoices';
+
+async function openDocsModal() {
+  document.getElementById('docs-modal-overlay').classList.remove('hidden');
+  await loadDocs();
+}
+
+function closeDocsModal() {
+  document.getElementById('docs-modal-overlay').classList.add('hidden');
+}
+
+function switchDocsTab(tab) {
+  activeDocsTab = tab;
+  document.getElementById('docs-tab-inv').className = 'docs-modal-tab' + (tab === 'invoices' ? ' active-inv' : '');
+  document.getElementById('docs-tab-quot').className = 'docs-modal-tab' + (tab === 'quotations' ? ' active-quot' : '');
+  document.getElementById('docs-list-invoices').style.display = tab === 'invoices' ? 'flex' : 'none';
+  document.getElementById('docs-list-quotations').style.display = tab === 'quotations' ? 'flex' : 'none';
+}
+
+async function loadDocs() {
+  const listInv = document.getElementById('docs-list-invoices');
+  const listQuot = document.getElementById('docs-list-quotations');
+  listInv.innerHTML = '<div class="docs-loading">Loading…</div>';
+  listQuot.innerHTML = '';
+  try {
+    const [invRes, quotRes] = await Promise.all([
+      fetch('/api/invoices', { headers: authHeaders() }),
+      fetch('/api/quotations', { headers: authHeaders() }),
+    ]);
+    docsData.invoices = invRes.ok ? await invRes.json() : [];
+    docsData.quotations = quotRes.ok ? await quotRes.json() : [];
+    renderDocList('invoices');
+    renderDocList('quotations');
+    document.getElementById('inv-count-badge').textContent = docsData.invoices.length ? `(${docsData.invoices.length})` : '';
+    document.getElementById('quot-count-badge').textContent = docsData.quotations.length ? `(${docsData.quotations.length})` : '';
+  } catch {
+    listInv.innerHTML = '<div class="docs-empty"><div class="empty-icon">⚠️</div>Failed to load documents</div>';
+  }
+}
+
+function calcTotal(services, gst, hst, discount) {
+  const sub = (services || []).reduce((s, i) => s + (i.qty || 0) * (i.rate || 0), 0);
+  return sub + sub * (parseFloat(gst) || 0) / 100 + sub * (parseFloat(hst) || 0) / 100 - (parseFloat(discount) || 0);
+}
+
+function renderDocList(type) {
+  const isInv = type === 'invoices';
+  const list = document.getElementById(isInv ? 'docs-list-invoices' : 'docs-list-quotations');
+  const items = docsData[type];
+  if (!items.length) {
+    list.innerHTML = `<div class="docs-empty"><div class="empty-icon">${isInv ? '🧾' : '📋'}</div>No ${type} yet.<br>Download a PDF to save one.</div>`;
+    return;
+  }
+  list.innerHTML = items.map(doc => {
+    const num = isInv ? doc.invoice_number : doc.quote_number;
+    const client = isInv ? doc.customer_name : doc.client_name;
+    const date = isInv ? doc.issue_date : doc.quote_date;
+    const total = calcTotal(doc.services, doc.gst_percent, doc.hst_percent, doc.discount);
+    const amtClass = isInv ? 'doc-item-amount' : 'doc-item-amount gold';
+    const d = new Date(doc.created_at);
+    const saved = isNaN(d) ? '' : d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `
+      <div class="doc-item">
+        <div>
+          <div class="doc-item-num">${num || '—'}</div>
+          <div class="doc-item-client">${client || 'No client'}</div>
+          <div class="doc-item-date">Saved ${saved}${date ? ' · ' + date : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div>
+            <div class="${amtClass}">$${total.toFixed(2)}</div>
+            <div class="doc-item-sub">CAD</div>
+          </div>
+          <button class="btn-del-doc" onclick="deleteDoc('${type}', ${doc.id})" title="Delete">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function deleteDoc(type, id) {
+  if (!confirm('Delete this document permanently?')) return;
+  try {
+    const url = type === 'invoices' ? `/api/invoices/${id}` : `/api/quotations/${id}`;
+    const res = await fetch(url, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) {
+      docsData[type] = docsData[type].filter(d => d.id !== id);
+      renderDocList(type);
+      document.getElementById('inv-count-badge').textContent = docsData.invoices.length ? `(${docsData.invoices.length})` : '';
+      document.getElementById('quot-count-badge').textContent = docsData.quotations.length ? `(${docsData.quotations.length})` : '';
+    }
+  } catch { showToast('Delete failed'); }
+}
+
 // ===== SAVE TO DATABASE =====
 async function saveToDatabase(docType) {
+  if (!currentUser) return; // only save when logged in
   const isInv = docType === 'invoice';
   try {
     let payload, url;
@@ -1198,11 +1656,11 @@ async function saveToDatabase(docType) {
     }
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(payload),
     });
     if (res.ok) {
-      showToast('✓ Saved to database');
+      showToast('✓ Saved to your account');
     } else {
       const err = await res.json();
       console.error('DB save failed:', err);
@@ -1224,6 +1682,10 @@ function showToast(msg) {
 window.onload = () => {
   renderInvServices(); updateInvoice();
   renderQuotServices(); updateQuotation();
+  checkAuth();
+  // Allow Enter key to submit auth forms
+  document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('reg-password').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
 };
 </script>
 </body>

@@ -1,7 +1,16 @@
-const { pgTable, serial, text, numeric, timestamp, jsonb } = require('drizzle-orm/pg-core');
+const { pgTable, serial, text, numeric, timestamp, jsonb, integer } = require('drizzle-orm/pg-core');
+
+const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  password_hash: text('password_hash').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+});
 
 const invoices = pgTable('invoices', {
   id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id),
   invoice_number: text('invoice_number').notNull(),
   company_name: text('company_name'),
   company_address: text('company_address'),
@@ -33,6 +42,7 @@ const invoices = pgTable('invoices', {
 
 const quotations = pgTable('quotations', {
   id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id),
   quote_number: text('quote_number').notNull(),
   company_name: text('company_name'),
   company_address: text('company_address'),
@@ -60,4 +70,4 @@ const quotations = pgTable('quotations', {
   updated_at: timestamp('updated_at').defaultNow(),
 });
 
-module.exports = { invoices, quotations };
+module.exports = { users, invoices, quotations };
