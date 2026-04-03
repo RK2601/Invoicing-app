@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiseMatic — Invoice & Quotation Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --navy: #152048;
+  --bg-page: #1e2d6b;
+  --bg-editor: #111827;
+  --accent: #3b5bdb;
+  --border: #dde2ec;
+  --gold: #f59e0b;
+  --gold-light: #fbbf24;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-editor);
+  color: #e8eaf2;
+  min-height: 100vh;
+}
+
+/* ===== MODE TABS ===== */
+.mode-tabs {
+  display: flex;
+  background: #0d1526;
+  border-bottom: 1px solid #1e2d50;
+  padding: 0 22px;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.mode-tab {
+  padding: 12px 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #5577aa;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-transform: uppercase;
+}
+.mode-tab:hover { color: #a0b4d8; }
+.mode-tab.active-inv { color: #7aa2ff; border-bottom-color: #3b5bdb; }
+.mode-tab.active-quot { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+/* ===== APP LAYOUT ===== */
+.app {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: calc(100vh - 44px);
+}
+.doc-mode { display: none; }
+.doc-mode.active { display: contents; }
+
+/* ===== EDITOR PANEL ===== */
+.editor {
+  background: #111827;
+  border-right: 1px solid #1e2d50;
+  overflow-y: auto;
+  max-height: calc(100vh - 44px);
+  position: sticky;
+  top: 44px;
+}
+.editor-header {
+  background: var(--navy);
+  padding: 18px 22px;
+  border-bottom: 1px solid #1e2d50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.editor-header .app-logo {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800; font-size: 14px; color: #fff;
+}
+.inv-logo-bg { background: #3b5bdb; }
+.quot-logo-bg { background: var(--gold); }
+.editor-header h1 { font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
+.editor-header p { font-size: 10px; color: #7890b8; }
+
+.editor-body { padding: 18px 22px 30px; }
+
+.section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: #3b5bdb; margin-bottom: 10px; margin-top: 18px;
+  padding-bottom: 5px; border-bottom: 1px solid #1e2d50;
+}
+.section-title.gold { color: var(--gold); }
+.section-title:first-child { margin-top: 0; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.form-row.full { grid-template-columns: 1fr; }
+.field label { display: block; font-size: 9.5px; font-weight: 600; color: #8899bb; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+.field input, .field textarea, .field select {
+  width: 100%; background: #1a2340; border: 1px solid #2a3a60;
+  border-radius: 6px; padding: 7px 9px;
+  font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: #e8eaf2; outline: none; transition: border-color 0.2s;
+}
+.field input:focus, .field textarea:focus { border-color: #3b5bdb; background: #1e2a4a; }
+.field.gold-focus input:focus, .field.gold-focus textarea:focus, .field.gold-focus select:focus { border-color: var(--gold); background: #1e2a1a; }
+.field textarea { resize: vertical; min-height: 52px; }
+
+.upload-box {
+  border: 2px dashed #2a3a60; border-radius: 8px; padding: 12px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden; margin-bottom: 8px;
+}
+.upload-box:hover { border-color: #3b5bdb; background: #1a2340; }
+.upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.upload-box .upload-icon { font-size: 20px; margin-bottom: 3px; }
+.upload-box p { font-size: 10px; color: #7890b8; }
+.upload-box .preview-img { max-height: 50px; max-width: 100%; object-fit: contain; border-radius: 4px; }
+
+.services-header { display: grid; grid-template-columns: 2fr 3fr 1fr 1fr; gap: 5px; margin-bottom: 5px; }
+.services-header span { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7890b8; }
+.service-row { display: grid; grid-template-columns: 2fr 3fr 1fr 1fr; gap: 5px; margin-bottom: 7px; align-items: start; position: relative; padding-right: 26px; }
+.service-row input, .service-row textarea {
+  width: 100%; background: #1a2340; border: 1px solid #2a3a60; border-radius: 5px;
+  padding: 6px 7px; font-family: 'DM Sans', sans-serif; font-size: 10.5px; color: #e8eaf2; outline: none;
+}
+.service-row input:focus, .service-row textarea:focus { border-color: #3b5bdb; }
+.service-row textarea { resize: none; min-height: 52px; }
+.btn-remove { position: absolute; right: 0; top: 6px; background: none; border: none; color: #e55; cursor: pointer; font-size: 16px; padding: 0 2px; }
+.btn-remove:hover { color: #ff4444; }
+.btn-add {
+  display: flex; align-items: center; gap: 6px; background: #1a2340;
+  border: 1px dashed #3b5bdb; border-radius: 6px; color: #3b5bdb;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600;
+  padding: 7px 12px; cursor: pointer; width: 100%; justify-content: center; transition: all 0.2s; margin-top: 3px;
+}
+.btn-add:hover { background: #1e2a4a; }
+.btn-add.gold { border-color: var(--gold); color: var(--gold); }
+.btn-add.gold:hover { background: #1e1a10; }
+
+.tax-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+
+.action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #1e2d50; }
+.btn-preview, .btn-download {
+  padding: 11px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-preview { background: #1a2a5e; color: #7aa2ff; border: 1px solid #2a3a60; }
+.btn-preview:hover { background: #1e3070; }
+.btn-download { background: #3b5bdb; color: #fff; }
+.btn-download:hover { background: #2f4ec0; }
+.btn-download.gold { background: var(--gold); color: #111; }
+.btn-download.gold:hover { background: var(--gold-light); }
+
+/* validity badge */
+.validity-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+
+/* ===== PREVIEW PANEL ===== */
+.preview-panel {
+  background: var(--bg-page);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 36px 30px; overflow-y: auto;
+}
+.preview-label {
+  font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px; color: #5577aa;
+  margin-bottom: 18px; align-self: flex-start;
+}
+.preview-label.gold { color: #a07830; }
+
+/* ===== DOCUMENT SHELL (A4: 794x1123px) ===== */
+.doc-shell {
+  width: 794px;
+  height: 1123px;
+  background: var(--bg-page);
+  padding: 28px 30px;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-inner {
+  width: 100%;
+  flex: 1;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== INVOICE STYLES ===== */
+.inv-header {
+  background: #152048;
+  padding: 26px 32px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.inv-logo-area { display: flex; align-items: center; gap: 12px; }
+.inv-logo-img {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #fff;
+  overflow: hidden; flex-shrink: 0; background: rgba(255,255,255,0.1);
+}
+.inv-logo-img img { width: 100%; height: 100%; object-fit: contain; }
+.inv-company-name { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.inv-company-addr { font-size: 10px; color: #a8b8d8; line-height: 1.6; margin-top: 2px; }
+.inv-meta { text-align: right; font-size: 11px; line-height: 2.1; color: #fff; font-weight: 600; }
+.inv-meta .lbl { color: #a8b8d8; font-weight: 400; }
+
+.inv-body { background: #fff; padding: 26px 34px 30px; color: #111; flex: 1; display: flex; flex-direction: column; }
+.inv-footer-wrap { margin-top: auto; }
+
+.inv-bill { margin-bottom: 22px; font-size: 11.5px; line-height: 1.85; }
+.inv-bill-title { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+
+.inv-table-wrap { margin-bottom: 18px; border: 1px solid #dde2ec; border-radius: 4px; overflow: hidden; }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.inv-table thead tr { background: #f0f2f7; }
+.inv-table thead th { padding: 10px 13px; text-align: left; font-weight: 700; font-size: 11.5px; color: #111; border-bottom: 1px solid #dde2ec; }
+.inv-table tbody tr { border-bottom: 1px solid #eaecf2; }
+.inv-table tbody tr:last-child { border-bottom: none; }
+.inv-table tbody td { padding: 10px 13px; vertical-align: top; color: #222; line-height: 1.55; font-size: 11.5px; }
+.inv-table tbody td:first-child { font-weight: 700; }
+
+.inv-totals-wrap { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+.inv-totals { width: 280px; font-size: 12px; }
+.inv-tot-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; color: #333; }
+.inv-tot-row:last-of-type { border-bottom: none; }
+.inv-tot-row .tl { color: #555; }
+.inv-tot-row .tv { font-weight: 600; }
+.inv-total-final {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #152048; color: #fff; border-radius: 6px;
+  padding: 10px 16px; margin-top: 8px; font-weight: 700; font-size: 14px;
+}
+
+.inv-footer { display: flex; justify-content: space-between; align-items: flex-start; }
+.inv-payment { font-size: 10.5px; color: #333; line-height: 1.8; }
+.inv-pay-title { font-weight: 700; font-size: 12px; color: #111; margin-bottom: 3px; }
+.inv-thankyou { text-align: right; }
+.inv-ty-text { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
+.inv-dir-name { font-size: 11px; color: #333; text-decoration: underline; }
+.inv-dir-title { font-size: 10.5px; color: #666; }
+.inv-sig-img { max-height: 50px; max-width: 130px; object-fit: contain; margin-top: 4px; }
+.inv-sig-text { font-family: 'Brush Script MT', cursive; font-size: 28px; color: #111; display: block; margin-top: 2px; }
+
+.inv-contact-bar {
+  background: #152048;
+  padding: 12px 34px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.inv-contact-item { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: #a8b8d8; }
+.inv-contact-item svg { width: 14px; height: 14px; fill: none; stroke: #a8b8d8; stroke-width: 1.5; flex-shrink: 0; }
+
+/* Scale down */
+.preview-scaler {
+  transform-origin: top center;
+  transform: scale(0.78);
+  margin-bottom: calc((794px * 0.78 - 794px) * 0.5);
+}
+
+/* ===== QUOTATION STYLES ===== */
+.quot-header {
+  background: linear-gradient(135deg, #1a1200 0%, #2d1f00 50%, #1a1200 100%);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.quot-header-top {
+  padding: 22px 32px 18px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 2px solid var(--gold);
+}
+.quot-logo-area { display: flex; align-items: center; gap: 12px; }
+.quot-logo-img {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: var(--gold);
+  overflow: hidden; flex-shrink: 0; background: rgba(245,158,11,0.1);
+}
+.quot-logo-img img { width: 100%; height: 100%; object-fit: contain; }
+.quot-company-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.quot-company-addr { font-size: 9.5px; color: #c8a860; line-height: 1.6; margin-top: 2px; }
+.quot-badge {
+  text-align: right;
+}
+.quot-badge-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); border: 1px solid var(--gold); border-radius: 3px;
+  padding: 2px 8px; display: inline-block; margin-bottom: 6px;
+}
+.quot-meta { font-size: 10.5px; line-height: 2; color: #e0c880; font-weight: 600; text-align: right; }
+.quot-meta .lbl { color: #a8906a; font-weight: 400; }
+
+.quot-header-strip {
+  background: var(--gold);
+  padding: 6px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.quot-strip-text { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #5a3a00; }
+
+.quot-body { background: #fff; padding: 22px 34px 26px; color: #111; flex: 1; display: flex; flex-direction: column; }
+
+.quot-to-section { margin-bottom: 18px; }
+.quot-to-header {
+  font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+  color: #8a6a20; margin-bottom: 6px;
+}
+.quot-to-box {
+  background: #fffbf0; border: 1px solid #e8d89a; border-radius: 6px;
+  padding: 12px 16px; font-size: 11.5px; line-height: 1.9;
+}
+.quot-to-name { font-size: 14px; font-weight: 800; color: #111; margin-bottom: 2px; }
+.quot-to-detail { color: #444; font-size: 10.5px; }
+
+.quot-intro { font-size: 10.5px; color: #444; line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+
+.quot-table-wrap { margin-bottom: 16px; border: 1px solid #e8d89a; border-radius: 6px; overflow: hidden; }
+.quot-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.quot-table thead tr { background: linear-gradient(90deg, #1a1200, #2d1f00); }
+.quot-table thead th { padding: 9px 13px; text-align: left; font-weight: 700; font-size: 10.5px; color: var(--gold); border-bottom: 2px solid var(--gold); }
+.quot-table tbody tr { border-bottom: 1px solid #f0e8c8; }
+.quot-table tbody tr:last-child { border-bottom: none; }
+.quot-table tbody tr:nth-child(even) { background: #fffbf0; }
+.quot-table tbody td { padding: 9px 13px; vertical-align: top; color: #222; line-height: 1.55; font-size: 10.5px; }
+.quot-table tbody td:first-child { font-weight: 700; color: #111; }
+
+.quot-totals-wrap { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+.quot-totals { width: 280px; }
+.quot-tot-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0e8c8; font-size: 11px; color: #333; }
+.quot-tot-row .tl { color: #666; }
+.quot-tot-row .tv { font-weight: 600; }
+.quot-total-final {
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(135deg, #1a1200, #2d1f00); color: #fff; border-radius: 6px;
+  padding: 10px 16px; margin-top: 8px; font-weight: 700; font-size: 14px;
+  border: 1px solid var(--gold);
+}
+.quot-total-final span:last-child { color: var(--gold-light); }
+
+.quot-terms { font-size: 9px; color: #888; line-height: 1.7; margin-bottom: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+.quot-terms-title { font-weight: 700; color: #555; margin-bottom: 4px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 1px; }
+
+.quot-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.quot-cta { }
+.quot-cta-title { font-size: 12px; font-weight: 700; color: #111; margin-bottom: 3px; }
+.quot-cta-sub { font-size: 9.5px; color: #666; }
+.quot-signatory { text-align: right; }
+.quot-sig-img { max-height: 45px; max-width: 120px; object-fit: contain; margin-bottom: 2px; }
+.quot-sig-text { font-family: 'Brush Script MT', cursive; font-size: 26px; color: #111; display: block; margin-bottom: 2px; }
+.quot-sig-name { font-size: 10.5px; color: #333; font-weight: 600; text-decoration: underline; }
+.quot-sig-title { font-size: 9.5px; color: #888; }
+
+.quot-contact-bar {
+  background: linear-gradient(90deg, #1a1200, #2d1f00);
+  border-top: 2px solid var(--gold);
+  padding: 10px 34px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.quot-contact-item { display: flex; align-items: center; gap: 6px; font-size: 9.5px; color: #c8a860; }
+.quot-contact-item svg { width: 12px; height: 12px; fill: none; stroke: var(--gold); stroke-width: 1.5; flex-shrink: 0; }
+
+@media (max-width: 1200px) {
+  .app { grid-template-columns: 1fr; }
+  .editor { max-height: none; position: static; }
+  .preview-scaler { transform: scale(0.55); }
+}
+</style>
+</head>
+<body>
+
+<!-- MODE TABS -->
+<div class="mode-tabs">
+  <button class="mode-tab active-inv" id="tab-inv" onclick="switchMode('invoice')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+    Invoice Generator
+  </button>
+  <button class="mode-tab" id="tab-quot" onclick="switchMode('quotation')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+    Quotation Generator
+  </button>
+</div>
+
+<div class="app">
+
+  <!-- ==================== INVOICE MODE ==================== -->
+  <div class="doc-mode active" id="mode-invoice">
+
+    <!-- EDITOR -->
+    <div class="editor">
+      <div class="editor-header">
+        <div class="app-logo inv-logo-bg">W</div>
+        <div>
+          <h1>Invoice Generator</h1>
+          <p>Edit fields • Upload logo & signature • Download PDF</p>
+        </div>
+      </div>
+      <div class="editor-body">
+
+        <div class="section-title">Company Info</div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:9.5px;font-weight:600;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Company Logo</label>
+          <div class="upload-box">
+            <input type="file" accept="image/*" onchange="handleLogo('inv', event)">
+            <div id="inv-logo-placeholder"><div class="upload-icon">🏢</div><p>Click to upload logo</p></div>
+            <img id="inv-logo-preview-thumb" class="preview-img" style="display:none;">
+          </div>
+        </div>
+        <div class="form-row full field"><label>Company Name</label><input type="text" id="inv-f-company" value="WiseMatic" oninput="updateInvoice()"></div>
+        <div class="form-row full field"><label>Company Address</label><input type="text" id="inv-f-address" value="150 Graydon Hall Drive, North York, Toronto, M3A 3B3, ON, Canada" oninput="updateInvoice()"></div>
+        <div class="form-row full field"><label>Address Line 2 (optional)</label><input type="text" id="inv-f-address2" value="" placeholder="e.g. Suite 200" oninput="updateInvoice()"></div>
+        <div class="form-row">
+          <div class="field"><label>Phone</label><input type="text" id="inv-f-phone" value="+14379897210" oninput="updateInvoice()"></div>
+          <div class="field"><label>Email</label><input type="text" id="inv-f-email" value="Sales@wisematic.ca" oninput="updateInvoice()"></div>
+        </div>
+        <div class="form-row full field"><label>Website</label><input type="text" id="inv-f-website" value="www.wisematic.ca" oninput="updateInvoice()"></div>
+
+        <div class="section-title">Invoice Details</div>
+        <div class="form-row">
+          <div class="field"><label>Invoice #</label><input type="text" id="inv-f-invnum" value="IN002503" oninput="updateInvoice()"></div>
+          <div class="field"><label>Issue Date</label><input type="date" id="inv-f-issuedate" value="2026-02-26" oninput="updateInvoice()"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Due Date</label><input type="date" id="inv-f-duedate" value="2026-03-01" oninput="updateInvoice()"></div>
+        </div>
+
+        <div class="section-title">Bill To</div>
+        <div class="form-row full field"><label>Customer Name</label><input type="text" id="inv-f-custname" value="Merit Education Corp. A/o Merit College" oninput="updateInvoice()"></div>
+        <div class="form-row full field"><label>Customer Address</label><input type="text" id="inv-f-custaddr" value="180 Duncan Mills Road, North York, Toronto" oninput="updateInvoice()"></div>
+        <div class="form-row">
+          <div class="field"><label>Customer Phone</label><input type="text" id="inv-f-custphone" value="" oninput="updateInvoice()"></div>
+          <div class="field"><label>Customer Email</label><input type="text" id="inv-f-custemail" value="adm@meritedu.ca" oninput="updateInvoice()"></div>
+        </div>
+
+        <div class="section-title">Services</div>
+        <div class="services-header"><span>Service</span><span>Description</span><span>Qty</span><span>Rate</span></div>
+        <div id="inv-services-container"></div>
+        <button class="btn-add" onclick="addInvService()">＋ Add Service</button>
+
+        <div class="section-title">Taxes & Discount</div>
+        <div class="tax-row">
+          <div class="field"><label>GST %</label><input type="number" id="inv-f-gst" value="0" min="0" oninput="updateInvoice()"></div>
+          <div class="field"><label>HST %</label><input type="number" id="inv-f-hst" value="0" min="0" oninput="updateInvoice()"></div>
+          <div class="field"><label>Discount $</label><input type="number" id="inv-f-discount" value="0" min="0" oninput="updateInvoice()"></div>
+        </div>
+
+        <div class="section-title">Payment Method</div>
+        <div class="form-row full field"><label>Bank Name</label><input type="text" id="inv-f-bank" value="Bank Of Montréal (Wisematic Inc.)" oninput="updateInvoice()"></div>
+        <div class="form-row">
+          <div class="field"><label>Account #</label><input type="text" id="inv-f-account" value="1975352" oninput="updateInvoice()"></div>
+          <div class="field"><label>Transit #</label><input type="text" id="inv-f-transit" value="25592" oninput="updateInvoice()"></div>
+        </div>
+        <div class="form-row"><div class="field"><label>Inst #</label><input type="text" id="inv-f-inst" value="001" oninput="updateInvoice()"></div></div>
+
+        <div class="section-title">Signatory</div>
+        <div class="form-row">
+          <div class="field"><label>Director Name</label><input type="text" id="inv-f-dirname" value="Rupesh Kumar" oninput="updateInvoice()"></div>
+          <div class="field"><label>Title</label><input type="text" id="inv-f-dirtitle" value="Director" oninput="updateInvoice()"></div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:9.5px;font-weight:600;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Signature Image</label>
+          <div class="upload-box">
+            <input type="file" accept="image/*" onchange="handleSig('inv', event)">
+            <div id="inv-sig-placeholder"><div class="upload-icon">✍️</div><p>Click to upload signature</p></div>
+            <img id="inv-sig-preview-thumb" class="preview-img" style="display:none;">
+          </div>
+        </div>
+
+        <div class="action-btns">
+          <button class="btn-preview" onclick="document.getElementById('inv-preview-panel').scrollIntoView({behavior:'smooth'})">👁 Preview</button>
+          <button class="btn-download" onclick="downloadPDF('invoice')">⬇ Download PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICE PREVIEW -->
+    <div class="preview-panel" id="inv-preview-panel">
+      <div class="preview-label">📄 Live Preview — A4 Invoice</div>
+      <div class="preview-scaler">
+        <div class="doc-shell" id="inv-shell">
+          <div class="doc-inner" id="inv-preview">
+
+            <div class="inv-header">
+              <div class="inv-logo-area">
+                <div class="inv-logo-img" id="inv-prev-logo-wrap"><span id="inv-prev-logo-letter">W</span></div>
+                <div>
+                  <div class="inv-company-name" id="inv-prev-company">WiseMatic</div>
+                  <div class="inv-company-addr" id="inv-prev-addr">150 Graydon Hall Drive, North York,<br>Toronto, M3A 3B3, ON, Canada</div>
+                </div>
+              </div>
+              <div class="inv-meta">
+                <div><span class="lbl">INVOICE #: </span><span id="inv-prev-invnum">IN002503</span></div>
+                <div><span class="lbl">ISSUE DATE: </span><span id="inv-prev-issue">02/26/2026</span></div>
+                <div><span class="lbl">DUE DATE: </span><span id="inv-prev-due">03/01/2026</span></div>
+              </div>
+            </div>
+
+            <div class="inv-body">
+              <div class="inv-bill">
+                <div class="inv-bill-title">BILL TO:</div>
+                <div><strong>Customer Name:</strong> <span id="inv-prev-custname">Merit Education Corp.</span></div>
+                <div><strong>Address:</strong> <span id="inv-prev-custaddr">180 Duncan Mills Road, North York, Toronto</span></div>
+                <div><strong>Phone:</strong> <span id="inv-prev-custphone"></span></div>
+                <div><strong>Email:</strong> <span id="inv-prev-custemail">adm@meritedu.ca</span></div>
+              </div>
+
+              <div class="inv-table-wrap">
+                <table class="inv-table">
+                  <thead>
+                    <tr>
+                      <th style="width:16%">Services</th>
+                      <th style="width:42%">Description</th>
+                      <th style="width:13%">QTY/Hours</th>
+                      <th style="width:10%">Rate</th>
+                      <th style="width:14%">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inv-prev-services"></tbody>
+                </table>
+              </div>
+
+              <div class="inv-totals-wrap">
+                <div class="inv-totals">
+                  <div class="inv-tot-row"><span class="tl">Subtotal</span><span class="tv" id="inv-prev-subtotal">$0.00</span></div>
+                  <div class="inv-tot-row"><span class="tl">GST</span><span class="tv" id="inv-prev-gst">0%</span></div>
+                  <div class="inv-tot-row"><span class="tl">HST</span><span class="tv" id="inv-prev-hst">0%</span></div>
+                  <div class="inv-tot-row"><span class="tl">Discount</span><span class="tv" id="inv-prev-discount">—</span></div>
+                  <div class="inv-total-final"><span>TOTAL:</span><span id="inv-prev-total">$0.00</span></div>
+                </div>
+              </div>
+
+              <div class="inv-footer-wrap">
+                <div class="inv-footer">
+                  <div class="inv-payment">
+                    <div class="inv-pay-title">Payment Method</div>
+                    <div id="inv-prev-bank">Bank Of Montréal (Wisematic Inc.)</div>
+                    <div>Account #: <span id="inv-prev-account">1975352</span></div>
+                    <div>Transit #: <span id="inv-prev-transit">25592</span></div>
+                    <div>Inst#: <span id="inv-prev-inst">001</span></div>
+                  </div>
+                  <div class="inv-thankyou">
+                    <div class="inv-ty-text">Thank you for your purchase!</div>
+                    <div class="inv-dir-name" id="inv-prev-dirname">Rupesh Kumar</div>
+                    <div class="inv-dir-title" id="inv-prev-dirtitle">Director</div>
+                    <img id="inv-prev-sig-img" class="inv-sig-img" style="display:none;" crossorigin="anonymous">
+                    <span class="inv-sig-text" id="inv-prev-sig-text">Rupesh</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="inv-contact-bar">
+              <div class="inv-contact-item">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.13 12.7 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                <span id="inv-prev-phone">+14379897210</span>
+              </div>
+              <div class="inv-contact-item">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="inv-prev-email">Sales@wisematic.ca</span>
+              </div>
+              <div class="inv-contact-item">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                <span id="inv-prev-website">www.wisematic.ca</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end invoice mode -->
+
+
+  <!-- ==================== QUOTATION MODE ==================== -->
+  <div class="doc-mode" id="mode-quotation">
+
+    <!-- EDITOR -->
+    <div class="editor">
+      <div class="editor-header" style="background: #1a1200; border-bottom-color: #3a2a00;">
+        <div class="app-logo quot-logo-bg" style="color:#111;">Q</div>
+        <div>
+          <h1>Quotation Generator</h1>
+          <p>Professional quotes for your freelance projects</p>
+        </div>
+      </div>
+      <div class="editor-body">
+
+        <div class="section-title gold">Your Company Info</div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:9.5px;font-weight:600;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Company Logo</label>
+          <div class="upload-box">
+            <input type="file" accept="image/*" onchange="handleLogo('quot', event)">
+            <div id="quot-logo-placeholder"><div class="upload-icon">🏢</div><p>Click to upload logo</p></div>
+            <img id="quot-logo-preview-thumb" class="preview-img" style="display:none;">
+          </div>
+        </div>
+        <div class="form-row full field gold-focus"><label>Company Name</label><input type="text" id="quot-f-company" value="WiseMatic" oninput="updateQuotation()"></div>
+        <div class="form-row full field gold-focus"><label>Company Address</label><input type="text" id="quot-f-address" value="150 Graydon Hall Drive, North York, Toronto, M3A 3B3, ON, Canada" oninput="updateQuotation()"></div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Phone</label><input type="text" id="quot-f-phone" value="+14379897210" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Email</label><input type="text" id="quot-f-email" value="Sales@wisematic.ca" oninput="updateQuotation()"></div>
+        </div>
+        <div class="form-row full field gold-focus"><label>Website</label><input type="text" id="quot-f-website" value="www.wisematic.ca" oninput="updateQuotation()"></div>
+
+        <div class="section-title gold">Quote Details</div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Quote #</label><input type="text" id="quot-f-quotnum" value="QT-2026-001" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Quote Date</label><input type="date" id="quot-f-quotedate" value="2026-03-31" oninput="updateQuotation()"></div>
+        </div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Valid Until</label><input type="date" id="quot-f-validuntil" value="2026-04-30" oninput="updateQuotation()"></div>
+          <div class="field gold-focus">
+            <label>Project Type</label>
+            <select id="quot-f-projtype" oninput="updateQuotation()">
+              <option value="Web Application Development">Web App Development</option>
+              <option value="Mobile App Development">Mobile App Development</option>
+              <option value="AI & Automation Integration">AI & Automation</option>
+              <option value="API Development & Integration">API Development</option>
+              <option value="UI/UX Design & Development">UI/UX Design</option>
+              <option value="E-Commerce Development">E-Commerce</option>
+              <option value="Custom Software Development">Custom Software</option>
+              <option value="Technical Consulting">Technical Consulting</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-title gold">Client Info</div>
+        <div class="form-row full field gold-focus"><label>Company / Client Name</label><input type="text" id="quot-f-clientname" value="Acme Corp Inc." oninput="updateQuotation()"></div>
+        <div class="form-row full field gold-focus"><label>Contact Person</label><input type="text" id="quot-f-contactperson" value="John Smith" oninput="updateQuotation()"></div>
+        <div class="form-row full field gold-focus"><label>Client Address</label><input type="text" id="quot-f-clientaddr" value="100 King Street West, Toronto, ON M5X 1A9" oninput="updateQuotation()"></div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Client Phone</label><input type="text" id="quot-f-clientphone" value="" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Client Email</label><input type="text" id="quot-f-clientemail" value="john@acmecorp.com" oninput="updateQuotation()"></div>
+        </div>
+
+        <div class="section-title gold">Intro / Cover Note</div>
+        <div class="form-row full field gold-focus">
+          <label>Opening Message</label>
+          <textarea id="quot-f-intro" style="min-height:64px;" oninput="updateQuotation()">Thank you for the opportunity to submit this quotation. As an independent full-stack developer and AI specialist, I am pleased to propose the following scope of work tailored to your project requirements.</textarea>
+        </div>
+
+        <div class="section-title gold">Services / Deliverables</div>
+        <div class="services-header"><span>Service</span><span>Deliverable</span><span>Hrs/Qty</span><span>Rate</span></div>
+        <div id="quot-services-container"></div>
+        <button class="btn-add gold" onclick="addQuotService()">＋ Add Deliverable</button>
+
+        <div class="section-title gold">Pricing</div>
+        <div class="tax-row">
+          <div class="field gold-focus"><label>GST %</label><input type="number" id="quot-f-gst" value="0" min="0" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>HST %</label><input type="number" id="quot-f-hst" value="13" min="0" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Discount $</label><input type="number" id="quot-f-discount" value="0" min="0" oninput="updateQuotation()"></div>
+        </div>
+
+        <div class="section-title gold">Terms & Conditions</div>
+        <div class="form-row full field gold-focus">
+          <label>Terms</label>
+          <textarea id="quot-f-terms" style="min-height:80px;" oninput="updateQuotation()">1. This quotation is valid for 30 days from the date of issue.
+2. A 50% deposit is required before commencement of work.
+3. Final payment is due upon project completion before delivery.
+4. Revisions beyond the agreed scope will be quoted separately.
+5. All intellectual property transfers upon receipt of final payment.</textarea>
+        </div>
+
+        <div class="section-title gold">Signatory</div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Your Name</label><input type="text" id="quot-f-dirname" value="Rupesh Kumar" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Title</label><input type="text" id="quot-f-dirtitle" value="Independent Developer" oninput="updateQuotation()"></div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:9.5px;font-weight:600;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Signature Image</label>
+          <div class="upload-box">
+            <input type="file" accept="image/*" onchange="handleSig('quot', event)">
+            <div id="quot-sig-placeholder"><div class="upload-icon">✍️</div><p>Click to upload signature</p></div>
+            <img id="quot-sig-preview-thumb" class="preview-img" style="display:none;">
+          </div>
+        </div>
+
+        <div class="action-btns">
+          <button class="btn-preview" onclick="document.getElementById('quot-preview-panel').scrollIntoView({behavior:'smooth'})">👁 Preview</button>
+          <button class="btn-download gold" onclick="downloadPDF('quotation')">⬇ Download PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTATION PREVIEW -->
+    <div class="preview-panel" id="quot-preview-panel" style="background: #1a1a0d;">
+      <div class="preview-label gold">📋 Live Preview — A4 Quotation</div>
+      <div class="preview-scaler">
+        <div class="doc-shell" id="quot-shell" style="background: #1a1a0d;">
+          <div class="doc-inner" id="quot-preview">
+
+            <div class="quot-header">
+              <div class="quot-header-top">
+                <div class="quot-logo-area">
+                  <div class="quot-logo-img" id="quot-prev-logo-wrap"><span id="quot-prev-logo-letter" style="font-size:20px;font-weight:800;">W</span></div>
+                  <div>
+                    <div class="quot-company-name" id="quot-prev-company">WiseMatic</div>
+                    <div class="quot-company-addr" id="quot-prev-addr">150 Graydon Hall Drive, North York, Toronto, M3A 3B3, ON, Canada</div>
+                  </div>
+                </div>
+                <div class="quot-badge">
+                  <div class="quot-badge-label">QUOTATION</div>
+                  <div class="quot-meta">
+                    <div><span class="lbl">Quote #: </span><span id="quot-prev-quotnum">QT-2026-001</span></div>
+                    <div><span class="lbl">Date: </span><span id="quot-prev-date">31/03/2026</span></div>
+                    <div><span class="lbl">Valid Until: </span><span id="quot-prev-valid">30/04/2026</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="quot-header-strip">
+                <span class="quot-strip-text" id="quot-prev-projtype">Web Application Development</span>
+                <span class="quot-strip-text">Wisematic Inc. · Independent Developer</span>
+              </div>
+            </div>
+
+            <div class="quot-body">
+              <div style="display:flex; gap:24px; margin-bottom:14px;">
+                <div style="flex:1;">
+                  <div class="quot-to-header">Prepared For</div>
+                  <div class="quot-to-box">
+                    <div class="quot-to-name" id="quot-prev-clientname">Acme Corp Inc.</div>
+                    <div class="quot-to-detail">Attn: <span id="quot-prev-contact">John Smith</span></div>
+                    <div class="quot-to-detail" id="quot-prev-clientaddr">100 King Street West, Toronto, ON M5X 1A9</div>
+                    <div class="quot-to-detail" id="quot-prev-clientemail">john@acmecorp.com</div>
+                  </div>
+                </div>
+                <div style="flex:1;">
+                  <div class="quot-to-header">Prepared By</div>
+                  <div class="quot-to-box">
+                    <div class="quot-to-name" id="quot-prev-ourname">WiseMatic</div>
+                    <div class="quot-to-detail" id="quot-prev-ourcontact">Rupesh Kumar · Independent Developer</div>
+                    <div class="quot-to-detail" id="quot-prev-ouremail">Sales@wisematic.ca</div>
+                    <div class="quot-to-detail" id="quot-prev-ourweb">www.wisematic.ca</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="quot-intro" id="quot-prev-intro">Thank you for the opportunity to submit this quotation. As an independent full-stack developer and AI specialist, I am pleased to propose the following scope of work tailored to your project requirements.</div>
+
+              <div class="quot-table-wrap">
+                <table class="quot-table">
+                  <thead>
+                    <tr>
+                      <th style="width:18%">Service</th>
+                      <th style="width:40%">Deliverable / Description</th>
+                      <th style="width:12%">Hrs/Qty</th>
+                      <th style="width:12%">Rate (CAD)</th>
+                      <th style="width:14%">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="quot-prev-services"></tbody>
+                </table>
+              </div>
+
+              <div class="quot-totals-wrap">
+                <div class="quot-totals">
+                  <div class="quot-tot-row"><span class="tl">Subtotal</span><span class="tv" id="quot-prev-subtotal">$0.00</span></div>
+                  <div class="quot-tot-row"><span class="tl">GST (<span id="quot-prev-gst-pct">0</span>%)</span><span class="tv" id="quot-prev-gst">$0.00</span></div>
+                  <div class="quot-tot-row"><span class="tl">HST (<span id="quot-prev-hst-pct">13</span>%)</span><span class="tv" id="quot-prev-hst">$0.00</span></div>
+                  <div class="quot-tot-row"><span class="tl">Discount</span><span class="tv" id="quot-prev-discount">—</span></div>
+                  <div class="quot-total-final"><span>TOTAL ESTIMATE:</span><span id="quot-prev-total">$0.00</span></div>
+                </div>
+              </div>
+
+              <div class="quot-terms">
+                <div class="quot-terms-title">Terms & Conditions</div>
+                <div id="quot-prev-terms">1. This quotation is valid for 30 days from the date of issue.<br>2. A 50% deposit is required before commencement of work.<br>3. Final payment is due upon project completion before delivery.<br>4. Revisions beyond the agreed scope will be quoted separately.<br>5. All intellectual property transfers upon receipt of final payment.</div>
+              </div>
+
+              <div class="quot-footer">
+                <div class="quot-cta">
+                  <div class="quot-cta-title">Ready to get started?</div>
+                  <div class="quot-cta-sub">Contact us to proceed with this proposal</div>
+                </div>
+                <div class="quot-signatory">
+                  <img id="quot-prev-sig-img" class="quot-sig-img" style="display:none;" crossorigin="anonymous">
+                  <span class="quot-sig-text" id="quot-prev-sig-text">Rupesh</span>
+                  <div class="quot-sig-name" id="quot-prev-dirname">Rupesh Kumar</div>
+                  <div class="quot-sig-title" id="quot-prev-dirtitle">Independent Developer</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="quot-contact-bar">
+              <div class="quot-contact-item">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.13 12.7 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                <span id="quot-prev-phone">+14379897210</span>
+              </div>
+              <div class="quot-contact-item">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="quot-prev-email-bar">Sales@wisematic.ca</span>
+              </div>
+              <div class="quot-contact-item">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                <span id="quot-prev-website-bar">www.wisematic.ca</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end quotation mode -->
+
+</div><!-- end app -->
+
+<script>
+// ===== MODE SWITCHING =====
+function switchMode(mode) {
+  document.getElementById('mode-invoice').classList.remove('active');
+  document.getElementById('mode-quotation').classList.remove('active');
+  document.getElementById('tab-inv').className = 'mode-tab';
+  document.getElementById('tab-quot').className = 'mode-tab';
+
+  if (mode === 'invoice') {
+    document.getElementById('mode-invoice').classList.add('active');
+    document.getElementById('tab-inv').classList.add('active-inv');
+  } else {
+    document.getElementById('mode-quotation').classList.add('active');
+    document.getElementById('tab-quot').classList.add('active-quot');
+  }
+}
+
+// ===== DATA =====
+let invLogoDataURL = null, invSigDataURL = null;
+let quotLogoDataURL = null, quotSigDataURL = null;
+
+let invServices = [
+  { name: 'App Dev', desc: 'Functional LMS with 5 different panels.', qty: 24, rate: 37 },
+  { name: 'Chat Integration', desc: 'A functional chat app across the panels.', qty: 3, rate: 37 },
+  { name: 'Landing Page', desc: 'JSBE Landing page with admin panel and chat bot.', qty: 7, rate: 37 },
+];
+
+let quotServices = [
+  { name: 'Discovery & Planning', desc: 'Requirements gathering, technical architecture, and project roadmap.', qty: 8, rate: 120 },
+  { name: 'Frontend Development', desc: 'Responsive React/Next.js UI with Tailwind CSS, all screens and components.', qty: 40, rate: 95 },
+  { name: 'Backend & API', desc: 'Node.js/Django REST API, database design, authentication, and integrations.', qty: 32, rate: 95 },
+  { name: 'AI Integration', desc: 'LLM/AI feature integration using OpenAI or Claude API with prompt engineering.', qty: 16, rate: 120 },
+  { name: 'QA & Deployment', desc: 'Testing, bug fixes, CI/CD setup, and production deployment on cloud infrastructure.', qty: 10, rate: 85 },
+];
+
+// ===== LOGO & SIG HANDLERS =====
+function handleLogo(mode, e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (mode === 'inv') {
+      invLogoDataURL = ev.target.result;
+      document.getElementById('inv-logo-placeholder').style.display = 'none';
+      const t = document.getElementById('inv-logo-preview-thumb'); t.src = invLogoDataURL; t.style.display = 'block';
+      updateInvoice();
+    } else {
+      quotLogoDataURL = ev.target.result;
+      document.getElementById('quot-logo-placeholder').style.display = 'none';
+      const t = document.getElementById('quot-logo-preview-thumb'); t.src = quotLogoDataURL; t.style.display = 'block';
+      updateQuotation();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSig(mode, e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (mode === 'inv') {
+      invSigDataURL = ev.target.result;
+      document.getElementById('inv-sig-placeholder').style.display = 'none';
+      const t = document.getElementById('inv-sig-preview-thumb'); t.src = invSigDataURL; t.style.display = 'block';
+      updateInvoice();
+    } else {
+      quotSigDataURL = ev.target.result;
+      document.getElementById('quot-sig-placeholder').style.display = 'none';
+      const t = document.getElementById('quot-sig-preview-thumb'); t.src = quotSigDataURL; t.style.display = 'block';
+      updateQuotation();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== HELPERS =====
+function formatDate(val) {
+  if (!val) return '';
+  const [y, m, d] = val.split('-');
+  return `${d}/${m}/${y}`;
+}
+function gv(id) { return document.getElementById(id).value; }
+
+// ===== INVOICE SERVICES =====
+function renderInvServices() {
+  const c = document.getElementById('inv-services-container');
+  c.innerHTML = '';
+  invServices.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'service-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Service" value="${s.name}" oninput="invServices[${i}].name=this.value;updateInvoice()">
+      <textarea placeholder="Description" oninput="invServices[${i}].desc=this.value;updateInvoice()">${s.desc}</textarea>
+      <input type="number" placeholder="Qty" value="${s.qty}" oninput="invServices[${i}].qty=parseFloat(this.value)||0;updateInvoice()">
+      <input type="number" placeholder="Rate" value="${s.rate}" oninput="invServices[${i}].rate=parseFloat(this.value)||0;updateInvoice()">
+      <button class="btn-remove" onclick="removeInvService(${i})" title="Remove">×</button>`;
+    c.appendChild(row);
+  });
+}
+function addInvService() { invServices.push({ name: '', desc: '', qty: 1, rate: 0 }); renderInvServices(); updateInvoice(); }
+function removeInvService(i) { invServices.splice(i, 1); renderInvServices(); updateInvoice(); }
+
+// ===== QUOTATION SERVICES =====
+function renderQuotServices() {
+  const c = document.getElementById('quot-services-container');
+  c.innerHTML = '';
+  quotServices.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'service-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Service" value="${s.name}" oninput="quotServices[${i}].name=this.value;updateQuotation()">
+      <textarea placeholder="Deliverable description" oninput="quotServices[${i}].desc=this.value;updateQuotation()">${s.desc}</textarea>
+      <input type="number" placeholder="Hrs" value="${s.qty}" oninput="quotServices[${i}].qty=parseFloat(this.value)||0;updateQuotation()">
+      <input type="number" placeholder="Rate" value="${s.rate}" oninput="quotServices[${i}].rate=parseFloat(this.value)||0;updateQuotation()">
+      <button class="btn-remove" onclick="removeQuotService(${i})" title="Remove">×</button>`;
+    c.appendChild(row);
+  });
+}
+function addQuotService() { quotServices.push({ name: '', desc: '', qty: 1, rate: 0 }); renderQuotServices(); updateQuotation(); }
+function removeQuotService(i) { quotServices.splice(i, 1); renderQuotServices(); updateQuotation(); }
+
+// ===== UPDATE INVOICE PREVIEW =====
+function updateInvoice() {
+  document.getElementById('inv-prev-company').textContent = gv('inv-f-company');
+  const a1 = gv('inv-f-address'), a2 = gv('inv-f-address2');
+  document.getElementById('inv-prev-addr').innerHTML = a1 + (a2 ? '<br>' + a2 : '');
+
+  const logoWrap = document.getElementById('inv-prev-logo-wrap');
+  if (invLogoDataURL) {
+    logoWrap.innerHTML = `<img src="${invLogoDataURL}" style="width:100%;height:100%;object-fit:contain;">`;
+  } else {
+    logoWrap.innerHTML = `<span style="font-size:20px;font-weight:800;color:#fff;">${(gv('inv-f-company') || 'W')[0].toUpperCase()}</span>`;
+  }
+
+  document.getElementById('inv-prev-invnum').textContent = gv('inv-f-invnum');
+  document.getElementById('inv-prev-issue').textContent = formatDate(gv('inv-f-issuedate'));
+  document.getElementById('inv-prev-due').textContent = formatDate(gv('inv-f-duedate'));
+  document.getElementById('inv-prev-custname').textContent = gv('inv-f-custname');
+  document.getElementById('inv-prev-custaddr').textContent = gv('inv-f-custaddr');
+  document.getElementById('inv-prev-custphone').textContent = gv('inv-f-custphone');
+  document.getElementById('inv-prev-custemail').textContent = gv('inv-f-custemail');
+
+  const tbody = document.getElementById('inv-prev-services');
+  tbody.innerHTML = '';
+  let subtotal = 0;
+  invServices.forEach(s => {
+    const amt = (s.qty || 0) * (s.rate || 0);
+    subtotal += amt;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const gst = parseFloat(gv('inv-f-gst')) || 0;
+  const hst = parseFloat(gv('inv-f-hst')) || 0;
+  const disc = parseFloat(gv('inv-f-discount')) || 0;
+  const gstAmt = subtotal * gst / 100;
+  const hstAmt = subtotal * hst / 100;
+  const total = subtotal + gstAmt + hstAmt - disc;
+  document.getElementById('inv-prev-subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('inv-prev-gst').textContent = gst + '%';
+  document.getElementById('inv-prev-hst').textContent = hst + '%';
+  document.getElementById('inv-prev-discount').textContent = disc > 0 ? '-$' + disc.toFixed(2) : '—';
+  document.getElementById('inv-prev-total').textContent = '$' + total.toFixed(2);
+
+  document.getElementById('inv-prev-bank').textContent = gv('inv-f-bank');
+  document.getElementById('inv-prev-account').textContent = gv('inv-f-account');
+  document.getElementById('inv-prev-transit').textContent = gv('inv-f-transit');
+  document.getElementById('inv-prev-inst').textContent = gv('inv-f-inst');
+
+  const dirName = gv('inv-f-dirname');
+  document.getElementById('inv-prev-dirname').textContent = dirName;
+  document.getElementById('inv-prev-dirtitle').textContent = gv('inv-f-dirtitle');
+  if (invSigDataURL) {
+    const si = document.getElementById('inv-prev-sig-img'); si.src = invSigDataURL; si.style.display = 'block';
+    document.getElementById('inv-prev-sig-text').style.display = 'none';
+  } else {
+    document.getElementById('inv-prev-sig-img').style.display = 'none';
+    document.getElementById('inv-prev-sig-text').style.display = 'block';
+    document.getElementById('inv-prev-sig-text').textContent = dirName.split(' ')[0] || '';
+  }
+  document.getElementById('inv-prev-phone').textContent = gv('inv-f-phone');
+  document.getElementById('inv-prev-email').textContent = gv('inv-f-email');
+  document.getElementById('inv-prev-website').textContent = gv('inv-f-website');
+}
+
+// ===== UPDATE QUOTATION PREVIEW =====
+function updateQuotation() {
+  const co = gv('quot-f-company');
+  document.getElementById('quot-prev-company').textContent = co;
+  document.getElementById('quot-prev-addr').textContent = gv('quot-f-address');
+  document.getElementById('quot-prev-ourname').textContent = co;
+  document.getElementById('quot-prev-ourcontact').textContent = gv('quot-f-dirname') + ' · ' + gv('quot-f-dirtitle');
+  document.getElementById('quot-prev-ouremail').textContent = gv('quot-f-email');
+  document.getElementById('quot-prev-ourweb').textContent = gv('quot-f-website');
+
+  const logoWrap = document.getElementById('quot-prev-logo-wrap');
+  if (quotLogoDataURL) {
+    logoWrap.innerHTML = `<img src="${quotLogoDataURL}" style="width:100%;height:100%;object-fit:contain;">`;
+  } else {
+    logoWrap.innerHTML = `<span style="font-size:20px;font-weight:800;color:var(--gold);">${(co || 'W')[0].toUpperCase()}</span>`;
+  }
+
+  document.getElementById('quot-prev-quotnum').textContent = gv('quot-f-quotnum');
+  document.getElementById('quot-prev-date').textContent = formatDate(gv('quot-f-quotedate'));
+  document.getElementById('quot-prev-valid').textContent = formatDate(gv('quot-f-validuntil'));
+  document.getElementById('quot-prev-projtype').textContent = gv('quot-f-projtype');
+
+  document.getElementById('quot-prev-clientname').textContent = gv('quot-f-clientname');
+  document.getElementById('quot-prev-contact').textContent = gv('quot-f-contactperson');
+  document.getElementById('quot-prev-clientaddr').textContent = gv('quot-f-clientaddr');
+  document.getElementById('quot-prev-clientemail').textContent = gv('quot-f-clientemail');
+
+  document.getElementById('quot-prev-intro').textContent = gv('quot-f-intro');
+
+  // terms (newline → br)
+  document.getElementById('quot-prev-terms').innerHTML = gv('quot-f-terms').replace(/\n/g, '<br>');
+
+  const tbody = document.getElementById('quot-prev-services');
+  tbody.innerHTML = '';
+  let subtotal = 0;
+  quotServices.forEach(s => {
+    const amt = (s.qty || 0) * (s.rate || 0);
+    subtotal += amt;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const gst = parseFloat(gv('quot-f-gst')) || 0;
+  const hst = parseFloat(gv('quot-f-hst')) || 0;
+  const disc = parseFloat(gv('quot-f-discount')) || 0;
+  const gstAmt = subtotal * gst / 100;
+  const hstAmt = subtotal * hst / 100;
+  const total = subtotal + gstAmt + hstAmt - disc;
+  document.getElementById('quot-prev-subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('quot-prev-gst-pct').textContent = gst;
+  document.getElementById('quot-prev-hst-pct').textContent = hst;
+  document.getElementById('quot-prev-gst').textContent = '$' + gstAmt.toFixed(2);
+  document.getElementById('quot-prev-hst').textContent = '$' + hstAmt.toFixed(2);
+  document.getElementById('quot-prev-discount').textContent = disc > 0 ? '-$' + disc.toFixed(2) : '—';
+  document.getElementById('quot-prev-total').textContent = '$' + total.toFixed(2);
+
+  const dirName = gv('quot-f-dirname');
+  document.getElementById('quot-prev-dirname').textContent = dirName;
+  document.getElementById('quot-prev-dirtitle').textContent = gv('quot-f-dirtitle');
+  if (quotSigDataURL) {
+    const si = document.getElementById('quot-prev-sig-img'); si.src = quotSigDataURL; si.style.display = 'block';
+    document.getElementById('quot-prev-sig-text').style.display = 'none';
+  } else {
+    document.getElementById('quot-prev-sig-img').style.display = 'none';
+    document.getElementById('quot-prev-sig-text').style.display = 'block';
+    document.getElementById('quot-prev-sig-text').textContent = dirName.split(' ')[0] || '';
+  }
+
+  document.getElementById('quot-prev-phone').textContent = gv('quot-f-phone');
+  document.getElementById('quot-prev-email-bar').textContent = gv('quot-f-email');
+  document.getElementById('quot-prev-website-bar').textContent = gv('quot-f-website');
+}
+
+// ===== DOWNLOAD PDF =====
+async function downloadPDF(docType) {
+  const isInv = docType === 'invoice';
+  const shellId = isInv ? 'inv-shell' : 'quot-shell';
+  const btnSel = isInv ? '#mode-invoice .btn-download' : '#mode-quotation .btn-download';
+  const filename = isInv
+    ? `Invoice_${gv('inv-f-invnum')}_${gv('inv-f-custname').replace(/[^a-z0-9]/gi, '_')}.pdf`
+    : `Quote_${gv('quot-f-quotnum')}_${gv('quot-f-clientname').replace(/[^a-z0-9]/gi, '_')}.pdf`;
+  const bgColor = isInv ? '#1e2d6b' : '#1a1a0d';
+
+  const btn = document.querySelector(btnSel);
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const shell = document.getElementById(shellId);
+    const scaler = shell.closest('.preview-scaler');
+
+    scaler.style.transform = 'none';
+    scaler.style.marginBottom = '0';
+    shell.style.width = '794px';
+    shell.style.height = '1123px';
+    shell.style.padding = '28px 30px';
+
+    await new Promise(r => setTimeout(r, 200));
+
+    const canvas = await html2canvas(shell, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: bgColor, logging: false,
+      width: 794, height: 1123, windowWidth: 794,
+    });
+
+    scaler.style.transform = 'scale(0.78)';
+    scaler.style.marginBottom = 'calc((794px * 0.78 - 794px) * 0.5)';
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 210, 297);
+    pdf.save(filename);
+  } catch (err) {
+    alert('PDF generation failed: ' + err.message);
+  } finally {
+    btn.textContent = isInv ? '⬇ Download PDF' : '⬇ Download PDF';
+    btn.disabled = false;
+  }
+}
+
+// ===== INIT =====
+window.onload = () => {
+  renderInvServices(); updateInvoice();
+  renderQuotServices(); updateQuotation();
+};
+</script>
+</body>
+</html>

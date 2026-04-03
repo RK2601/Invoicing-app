@@ -1,0 +1,36 @@
+{
+  "name": "wisematic-invoicing",
+  "version": "1.0.0",
+  "description": "Professional invoice and quotation generator with database support",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:migrate": "node src/utils/migrate.js",
+    "db:seed": "node src/utils/seed.js"
+  },
+  "keywords": [
+    "invoice",
+    "quotation",
+    "generator",
+    "pdf",
+    "neon",
+    "postgresql"
+  ],
+  "author": "WiseMatic",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@neondatabase/serverless": "^0.6.0",
+    "drizzle-orm": "^0.29.0",
+    "drizzle-kit": "^0.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
