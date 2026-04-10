@@ -94,6 +94,13 @@ async function runMigrations() {
     ALTER TABLE quotations ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
   `;
 
+  await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS billing_mode TEXT`;
+  await sql`ALTER TABLE quotations ADD COLUMN IF NOT EXISTS billing_mode TEXT`;
+  await sql`ALTER TABLE quotations ADD COLUMN IF NOT EXISTS bank_name TEXT`;
+  await sql`ALTER TABLE quotations ADD COLUMN IF NOT EXISTS account_number TEXT`;
+  await sql`ALTER TABLE quotations ADD COLUMN IF NOT EXISTS transit_number TEXT`;
+  await sql`ALTER TABLE quotations ADD COLUMN IF NOT EXISTS institution_number TEXT`;
+
   console.log('Migrations complete!');
   process.exit(0);
 }

@@ -309,7 +309,14 @@ body {
 
 .services-header { display: grid; grid-template-columns: 2fr 3fr 1fr 1fr; gap: 5px; margin-bottom: 5px; }
 .services-header span { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7890b8; }
+.services-header-lumpsum { grid-template-columns: 2fr 3fr 2fr; }
 .service-row { display: grid; grid-template-columns: 2fr 3fr 1fr 1fr; gap: 5px; margin-bottom: 7px; align-items: start; position: relative; padding-right: 26px; }
+.service-row-lumpsum { grid-template-columns: 2fr 3fr 2fr; }
+.billing-mode-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 10px 0; font-size: 11px; color: #a8b8d8; }
+.billing-mode-row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; }
+.billing-mode-row input[type="radio"] { accent-color: #3b5bdb; }
+.billing-mode-row.quot-billing label { color: #c9b87a; }
+.billing-mode-row.quot-billing input[type="radio"] { accent-color: #c9a227; }
 .service-row input, .service-row textarea {
   width: 100%; background: #1a2340; border: 1px solid #2a3a60; border-radius: 5px;
   padding: 6px 7px; font-family: 'DM Sans', sans-serif; font-size: 10.5px; color: #e8eaf2; outline: none;
@@ -430,6 +437,8 @@ body {
 
 .inv-footer { display: flex; justify-content: space-between; align-items: flex-start; }
 .inv-payment { font-size: 10.5px; color: #333; line-height: 1.8; }
+.quot-payment-block { margin-top: 14px; padding: 12px 14px; background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.25); border-radius: 8px; font-size: 10.5px; color: #e8e0c8; line-height: 1.75; }
+.quot-payment-block .quot-pay-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 9px; color: var(--gold); margin-bottom: 6px; }
 .inv-pay-title { font-weight: 700; font-size: 12px; color: #111; margin-bottom: 3px; }
 .inv-thankyou { text-align: right; }
 .inv-ty-text { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
@@ -704,7 +713,11 @@ body {
         </div>
 
         <div class="section-title">Services</div>
-        <div class="services-header"><span>Service</span><span>Description</span><span>Qty</span><span>Rate</span></div>
+        <div class="billing-mode-row">
+          <label><input type="radio" name="inv-billing-mode" value="hourly" checked onchange="onBillingModeChange('inv')"> Hourly — hours × rate</label>
+          <label><input type="radio" name="inv-billing-mode" value="lumpsum" onchange="onBillingModeChange('inv')"> Lump sum — fixed amount per line</label>
+        </div>
+        <div class="services-header" id="inv-services-header"><span>Service</span><span>Description</span><span>Qty / Hrs</span><span>Rate ($)</span></div>
         <div id="inv-services-container"></div>
         <button class="btn-add" onclick="addInvService()">＋ Add Service</button>
 
@@ -715,7 +728,8 @@ body {
           <div class="field"><label>Discount $</label><input type="number" id="inv-f-discount" value="0" min="0" oninput="updateInvoice()"></div>
         </div>
 
-        <div class="section-title">Payment Method</div>
+        <div class="section-title">Payment details</div>
+        <p style="font-size:10px;color:#8899bb;margin:-4px 0 8px 0;line-height:1.45;">Edit bank name, account, transit, and institution numbers shown on the invoice.</p>
         <div class="form-row full field"><label>Bank Name</label><input type="text" id="inv-f-bank" value="Bank Of Montréal (Wisematic Inc.)" oninput="updateInvoice()"></div>
         <div class="form-row">
           <div class="field"><label>Account #</label><input type="text" id="inv-f-account" value="1975352" oninput="updateInvoice()"></div>
@@ -777,15 +791,7 @@ body {
 
               <div class="inv-table-wrap">
                 <table class="inv-table">
-                  <thead>
-                    <tr>
-                      <th style="width:16%">Services</th>
-                      <th style="width:42%">Description</th>
-                      <th style="width:13%">QTY/Hours</th>
-                      <th style="width:10%">Rate</th>
-                      <th style="width:14%">Amount</th>
-                    </tr>
-                  </thead>
+                  <thead id="inv-prev-thead"></thead>
                   <tbody id="inv-prev-services"></tbody>
                 </table>
               </div>
@@ -912,7 +918,11 @@ body {
         </div>
 
         <div class="section-title gold">Services / Deliverables</div>
-        <div class="services-header"><span>Service</span><span>Deliverable</span><span>Hrs/Qty</span><span>Rate</span></div>
+        <div class="billing-mode-row quot-billing">
+          <label><input type="radio" name="quot-billing-mode" value="hourly" checked onchange="onBillingModeChange('quot')"> Hourly — hours × rate</label>
+          <label><input type="radio" name="quot-billing-mode" value="lumpsum" onchange="onBillingModeChange('quot')"> Lump sum — fixed amount per line</label>
+        </div>
+        <div class="services-header" id="quot-services-header"><span>Service</span><span>Deliverable</span><span>Hrs / Qty</span><span>Rate ($)</span></div>
         <div id="quot-services-container"></div>
         <button class="btn-add gold" onclick="addQuotService()">＋ Add Deliverable</button>
 
@@ -922,6 +932,15 @@ body {
           <div class="field gold-focus"><label>HST %</label><input type="number" id="quot-f-hst" value="13" min="0" oninput="updateQuotation()"></div>
           <div class="field gold-focus"><label>Discount $</label><input type="number" id="quot-f-discount" value="0" min="0" oninput="updateQuotation()"></div>
         </div>
+
+        <div class="section-title gold">Payment details</div>
+        <p style="font-size:10px;color:#8899bb;margin:-4px 0 8px 0;line-height:1.45;">Shown on the quote so clients know where to send payment.</p>
+        <div class="form-row full field gold-focus"><label>Bank Name</label><input type="text" id="quot-f-bank" value="Bank Of Montréal (Wisematic Inc.)" oninput="updateQuotation()"></div>
+        <div class="form-row">
+          <div class="field gold-focus"><label>Account #</label><input type="text" id="quot-f-account" value="1975352" oninput="updateQuotation()"></div>
+          <div class="field gold-focus"><label>Transit #</label><input type="text" id="quot-f-transit" value="25592" oninput="updateQuotation()"></div>
+        </div>
+        <div class="form-row"><div class="field gold-focus"><label>Institution #</label><input type="text" id="quot-f-inst" value="001" oninput="updateQuotation()"></div></div>
 
         <div class="section-title gold">Terms & Conditions</div>
         <div class="form-row full field gold-focus">
@@ -1011,15 +1030,7 @@ body {
 
               <div class="quot-table-wrap">
                 <table class="quot-table">
-                  <thead>
-                    <tr>
-                      <th style="width:18%">Service</th>
-                      <th style="width:40%">Deliverable / Description</th>
-                      <th style="width:12%">Hrs/Qty</th>
-                      <th style="width:12%">Rate (CAD)</th>
-                      <th style="width:14%">Amount</th>
-                    </tr>
-                  </thead>
+                  <thead id="quot-prev-thead"></thead>
                   <tbody id="quot-prev-services"></tbody>
                 </table>
               </div>
@@ -1037,6 +1048,14 @@ body {
               <div class="quot-terms">
                 <div class="quot-terms-title">Terms & Conditions</div>
                 <div id="quot-prev-terms">1. This quotation is valid for 30 days from the date of issue.<br>2. A 50% deposit is required before commencement of work.<br>3. Final payment is due upon project completion before delivery.<br>4. Revisions beyond the agreed scope will be quoted separately.<br>5. All intellectual property transfers upon receipt of final payment.</div>
+              </div>
+
+              <div class="quot-payment-block" id="quot-payment-block">
+                <div class="quot-pay-title">Payment details</div>
+                <div id="quot-prev-bank">Bank Of Montréal (Wisematic Inc.)</div>
+                <div>Account #: <span id="quot-prev-account">1975352</span></div>
+                <div>Transit #: <span id="quot-prev-transit">25592</span></div>
+                <div>Institution #: <span id="quot-prev-inst">001</span></div>
               </div>
 
               <div class="quot-footer">
@@ -1159,19 +1178,90 @@ function formatDate(val) {
 }
 function gv(id) { return document.getElementById(id).value; }
 
+let invBillingMode = 'hourly';
+let quotBillingMode = 'hourly';
+
+function getInvBillingMode() {
+  const el = document.querySelector('input[name="inv-billing-mode"]:checked');
+  return el && el.value === 'lumpsum' ? 'lumpsum' : 'hourly';
+}
+function getQuotBillingMode() {
+  const el = document.querySelector('input[name="quot-billing-mode"]:checked');
+  return el && el.value === 'lumpsum' ? 'lumpsum' : 'hourly';
+}
+function lineSubtotal(s, mode) {
+  const m = mode || 'hourly';
+  if (m === 'lumpsum') return parseFloat(s.rate) || 0;
+  return (parseFloat(s.qty) || 0) * (parseFloat(s.rate) || 0);
+}
+function onBillingModeChange(which) {
+  const next = which === 'inv' ? getInvBillingMode() : getQuotBillingMode();
+  const prev = which === 'inv' ? invBillingMode : quotBillingMode;
+  if (next === prev) return;
+  const services = which === 'inv' ? invServices : quotServices;
+  if (next === 'lumpsum') {
+    services.forEach(s => {
+      const amt = (parseFloat(s.qty) || 0) * (parseFloat(s.rate) || 0);
+      s.qty = 1;
+      s.rate = amt;
+    });
+  } else {
+    services.forEach(s => {
+      const amt = parseFloat(s.rate) || 0;
+      s.qty = 1;
+      s.rate = amt;
+    });
+  }
+  if (which === 'inv') {
+    invBillingMode = next;
+    renderInvServices();
+    updateInvoice();
+  } else {
+    quotBillingMode = next;
+    renderQuotServices();
+    updateQuotation();
+  }
+}
+function syncInvServicesHeader() {
+  const h = document.getElementById('inv-services-header');
+  const lumpsum = getInvBillingMode() === 'lumpsum';
+  h.className = lumpsum ? 'services-header services-header-lumpsum' : 'services-header';
+  h.innerHTML = lumpsum
+    ? '<span>Service</span><span>Description</span><span>Line total ($)</span>'
+    : '<span>Service</span><span>Description</span><span>Qty / Hrs</span><span>Rate ($)</span>';
+}
+function syncQuotServicesHeader() {
+  const h = document.getElementById('quot-services-header');
+  const lumpsum = getQuotBillingMode() === 'lumpsum';
+  h.className = lumpsum ? 'services-header services-header-lumpsum' : 'services-header';
+  h.innerHTML = lumpsum
+    ? '<span>Service</span><span>Deliverable</span><span>Line total ($)</span>'
+    : '<span>Service</span><span>Deliverable</span><span>Hrs / Qty</span><span>Rate ($)</span>';
+}
+
 // ===== INVOICE SERVICES =====
 function renderInvServices() {
+  syncInvServicesHeader();
   const c = document.getElementById('inv-services-container');
+  const mode = getInvBillingMode();
   c.innerHTML = '';
   invServices.forEach((s, i) => {
     const row = document.createElement('div');
-    row.className = 'service-row';
-    row.innerHTML = `
+    row.className = mode === 'lumpsum' ? 'service-row service-row-lumpsum' : 'service-row';
+    if (mode === 'hourly') {
+      row.innerHTML = `
       <input type="text" placeholder="Service" value="${s.name}" oninput="invServices[${i}].name=this.value;updateInvoice()">
       <textarea placeholder="Description" oninput="invServices[${i}].desc=this.value;updateInvoice()">${s.desc}</textarea>
-      <input type="number" placeholder="Qty" value="${s.qty}" oninput="invServices[${i}].qty=parseFloat(this.value)||0;updateInvoice()">
-      <input type="number" placeholder="Rate" value="${s.rate}" oninput="invServices[${i}].rate=parseFloat(this.value)||0;updateInvoice()">
+      <input type="number" placeholder="Qty / Hrs" value="${s.qty}" oninput="invServices[${i}].qty=parseFloat(this.value)||0;updateInvoice()">
+      <input type="number" placeholder="Rate ($)" value="${s.rate}" oninput="invServices[${i}].rate=parseFloat(this.value)||0;updateInvoice()">
       <button class="btn-remove" onclick="removeInvService(${i})" title="Remove">×</button>`;
+    } else {
+      row.innerHTML = `
+      <input type="text" placeholder="Service" value="${s.name}" oninput="invServices[${i}].name=this.value;updateInvoice()">
+      <textarea placeholder="Description" oninput="invServices[${i}].desc=this.value;updateInvoice()">${s.desc}</textarea>
+      <input type="number" placeholder="Line total ($)" value="${s.rate}" oninput="invServices[${i}].qty=1;invServices[${i}].rate=parseFloat(this.value)||0;updateInvoice()">
+      <button class="btn-remove" onclick="removeInvService(${i})" title="Remove">×</button>`;
+    }
     c.appendChild(row);
   });
 }
@@ -1180,17 +1270,27 @@ function removeInvService(i) { invServices.splice(i, 1); renderInvServices(); up
 
 // ===== QUOTATION SERVICES =====
 function renderQuotServices() {
+  syncQuotServicesHeader();
   const c = document.getElementById('quot-services-container');
+  const mode = getQuotBillingMode();
   c.innerHTML = '';
   quotServices.forEach((s, i) => {
     const row = document.createElement('div');
-    row.className = 'service-row';
-    row.innerHTML = `
+    row.className = mode === 'lumpsum' ? 'service-row service-row-lumpsum' : 'service-row';
+    if (mode === 'hourly') {
+      row.innerHTML = `
       <input type="text" placeholder="Service" value="${s.name}" oninput="quotServices[${i}].name=this.value;updateQuotation()">
       <textarea placeholder="Deliverable description" oninput="quotServices[${i}].desc=this.value;updateQuotation()">${s.desc}</textarea>
-      <input type="number" placeholder="Hrs" value="${s.qty}" oninput="quotServices[${i}].qty=parseFloat(this.value)||0;updateQuotation()">
-      <input type="number" placeholder="Rate" value="${s.rate}" oninput="quotServices[${i}].rate=parseFloat(this.value)||0;updateQuotation()">
+      <input type="number" placeholder="Hrs / Qty" value="${s.qty}" oninput="quotServices[${i}].qty=parseFloat(this.value)||0;updateQuotation()">
+      <input type="number" placeholder="Rate ($)" value="${s.rate}" oninput="quotServices[${i}].rate=parseFloat(this.value)||0;updateQuotation()">
       <button class="btn-remove" onclick="removeQuotService(${i})" title="Remove">×</button>`;
+    } else {
+      row.innerHTML = `
+      <input type="text" placeholder="Service" value="${s.name}" oninput="quotServices[${i}].name=this.value;updateQuotation()">
+      <textarea placeholder="Deliverable description" oninput="quotServices[${i}].desc=this.value;updateQuotation()">${s.desc}</textarea>
+      <input type="number" placeholder="Line total ($)" value="${s.rate}" oninput="quotServices[${i}].qty=1;quotServices[${i}].rate=parseFloat(this.value)||0;updateQuotation()">
+      <button class="btn-remove" onclick="removeQuotService(${i})" title="Remove">×</button>`;
+    }
     c.appendChild(row);
   });
 }
@@ -1218,14 +1318,26 @@ function updateInvoice() {
   document.getElementById('inv-prev-custphone').textContent = gv('inv-f-custphone');
   document.getElementById('inv-prev-custemail').textContent = gv('inv-f-custemail');
 
+  const invMode = getInvBillingMode();
+  const thead = document.getElementById('inv-prev-thead');
+  if (invMode === 'lumpsum') {
+    thead.innerHTML = '<tr><th style="width:18%">Services</th><th style="width:58%">Description</th><th style="width:22%;text-align:right">Amount</th></tr>';
+  } else {
+    thead.innerHTML = '<tr><th style="width:16%">Services</th><th style="width:42%">Description</th><th style="width:13%">QTY/Hours</th><th style="width:10%">Rate</th><th style="width:14%">Amount</th></tr>';
+  }
+
   const tbody = document.getElementById('inv-prev-services');
   tbody.innerHTML = '';
   let subtotal = 0;
   invServices.forEach(s => {
-    const amt = (s.qty || 0) * (s.rate || 0);
+    const amt = lineSubtotal(s, invMode);
     subtotal += amt;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    if (invMode === 'lumpsum') {
+      tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td style="text-align:right;font-weight:600">$${amt.toFixed(2)}</td>`;
+    } else {
+      tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    }
     tbody.appendChild(tr);
   });
 
@@ -1294,16 +1406,33 @@ function updateQuotation() {
   // terms (newline → br)
   document.getElementById('quot-prev-terms').innerHTML = gv('quot-f-terms').replace(/\n/g, '<br>');
 
+  const quotMode = getQuotBillingMode();
+  const qthead = document.getElementById('quot-prev-thead');
+  if (quotMode === 'lumpsum') {
+    qthead.innerHTML = '<tr><th style="width:18%">Service</th><th style="width:58%">Deliverable / Description</th><th style="width:22%;text-align:right">Amount</th></tr>';
+  } else {
+    qthead.innerHTML = '<tr><th style="width:18%">Service</th><th style="width:40%">Deliverable / Description</th><th style="width:12%">Hrs/Qty</th><th style="width:12%">Rate (CAD)</th><th style="width:14%">Amount</th></tr>';
+  }
+
   const tbody = document.getElementById('quot-prev-services');
   tbody.innerHTML = '';
   let subtotal = 0;
   quotServices.forEach(s => {
-    const amt = (s.qty || 0) * (s.rate || 0);
+    const amt = lineSubtotal(s, quotMode);
     subtotal += amt;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    if (quotMode === 'lumpsum') {
+      tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td style="text-align:right;font-weight:600">$${amt.toFixed(2)}</td>`;
+    } else {
+      tr.innerHTML = `<td>${s.name}</td><td>${s.desc}</td><td>${s.qty}</td><td>$${s.rate}</td><td>$${amt.toFixed(2)}</td>`;
+    }
     tbody.appendChild(tr);
   });
+
+  document.getElementById('quot-prev-bank').textContent = gv('quot-f-bank');
+  document.getElementById('quot-prev-account').textContent = gv('quot-f-account');
+  document.getElementById('quot-prev-transit').textContent = gv('quot-f-transit');
+  document.getElementById('quot-prev-inst').textContent = gv('quot-f-inst');
 
   const gst = parseFloat(gv('quot-f-gst')) || 0;
   const hst = parseFloat(gv('quot-f-hst')) || 0;
@@ -1538,8 +1667,9 @@ async function loadDocs() {
   }
 }
 
-function calcTotal(services, gst, hst, discount) {
-  const sub = (services || []).reduce((s, i) => s + (i.qty || 0) * (i.rate || 0), 0);
+function calcTotal(services, gst, hst, discount, billingMode) {
+  const mode = billingMode || 'hourly';
+  const sub = (services || []).reduce((acc, i) => acc + lineSubtotal(i, mode), 0);
   return sub + sub * (parseFloat(gst) || 0) / 100 + sub * (parseFloat(hst) || 0) / 100 - (parseFloat(discount) || 0);
 }
 
@@ -1555,7 +1685,7 @@ function renderDocList(type) {
     const num = isInv ? doc.invoice_number : doc.quote_number;
     const client = isInv ? doc.customer_name : doc.client_name;
     const date = isInv ? doc.issue_date : doc.quote_date;
-    const total = calcTotal(doc.services, doc.gst_percent, doc.hst_percent, doc.discount);
+    const total = calcTotal(doc.services, doc.gst_percent, doc.hst_percent, doc.discount, doc.billing_mode);
     const amtClass = isInv ? 'doc-item-amount' : 'doc-item-amount gold';
     const d = new Date(doc.created_at);
     const saved = isNaN(d) ? '' : d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1614,6 +1744,7 @@ async function saveToDatabase(docType) {
         customer_phone: gv('inv-f-custphone'),
         customer_email: gv('inv-f-custemail'),
         services: invServices,
+        billing_mode: getInvBillingMode(),
         gst_percent: gv('inv-f-gst') || '0',
         hst_percent: gv('inv-f-hst') || '0',
         discount: gv('inv-f-discount') || '0',
@@ -1645,9 +1776,14 @@ async function saveToDatabase(docType) {
         intro_text: gv('quot-f-intro'),
         terms: gv('quot-f-terms'),
         services: quotServices,
+        billing_mode: getQuotBillingMode(),
         gst_percent: gv('quot-f-gst') || '0',
         hst_percent: gv('quot-f-hst') || '0',
         discount: gv('quot-f-discount') || '0',
+        bank_name: gv('quot-f-bank'),
+        account_number: gv('quot-f-account'),
+        transit_number: gv('quot-f-transit'),
+        institution_number: gv('quot-f-inst'),
         director_name: gv('quot-f-dirname'),
         director_title: gv('quot-f-dirtitle'),
         logo_data: quotLogoDataURL || null,
