@@ -437,17 +437,22 @@ body {
 
 .inv-footer { display: flex; justify-content: space-between; align-items: flex-start; }
 .inv-payment { font-size: 10.5px; color: #333; line-height: 1.8; }
-/* Quotation bottom: bank (left) + CTA / signature / billing note (right) */
+/* Quotation bottom: bank (left) + CTA / signature (right). Flex (not grid) so html2canvas matches preview; avoid max-width ≥ capture width (794px) or PDF stacks one column. */
 .quot-bottom-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 20px;
-  align-items: start;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
   margin-top: 4px;
   padding-top: 10px;
   border-top: 1px solid #eee;
 }
 .quot-bottom-bank {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: calc(50% - 9px);
   padding: 10px 12px;
   background: #fffbf0;
   border: 1px solid #e8d89a;
@@ -464,27 +469,25 @@ body {
 .quot-bottom-bank .bank-line strong { color: #1a1200; font-weight: 600; margin-right: 4px; }
 .quot-bottom-bank #quot-prev-bank { font-weight: 600; color: #1a1200; margin-bottom: 6px; line-height: 1.4; }
 .quot-bottom-aside {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: calc(50% - 9px);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
   gap: 10px;
-  min-width: 0;
 }
 .quot-bottom-aside .quot-cta { text-align: right; width: 100%; }
 .quot-bottom-aside .quot-cta-title { font-size: 11px; }
 .quot-bottom-aside .quot-cta-sub { font-size: 9px; }
-.quot-billing-hint {
-  font-size: 9px; color: #555; line-height: 1.45; text-align: right;
-  padding: 6px 10px; background: #f8f8f8; border-radius: 6px; border: 1px solid #eaeaea;
-  max-width: 100%;
-}
 .quot-bottom-aside .quot-signatory { margin-top: 4px; }
-@media (max-width: 1200px) {
-  .quot-bottom-split { grid-template-columns: 1fr; }
+/* Only stack on very narrow viewports — must stay > 794px so PDF (html2canvas windowWidth 794) keeps two columns */
+@media (max-width: 520px) {
+  .quot-bottom-split { flex-direction: column; flex-wrap: wrap; }
+  .quot-bottom-bank, .quot-bottom-aside { max-width: 100%; }
   .quot-bottom-aside { align-items: flex-start; text-align: left; }
   .quot-bottom-aside .quot-cta { text-align: left; }
-  .quot-billing-hint { text-align: left; }
 }
 .inv-pay-title { font-weight: 700; font-size: 12px; color: #111; margin-bottom: 3px; }
 .inv-thankyou { text-align: right; }
@@ -761,8 +764,8 @@ body {
 
         <div class="section-title">Services</div>
         <div class="billing-mode-row">
-          <label><input type="radio" name="inv-billing-mode" value="hourly" checked onchange="onBillingModeChange('inv')"> Hourly — hours × rate</label>
-          <label><input type="radio" name="inv-billing-mode" value="lumpsum" onchange="onBillingModeChange('inv')"> Lump sum — fixed amount per line</label>
+          <label><input type="radio" name="inv-billing-mode" value="hourly" checked onchange="onBillingModeChange('inv')"> Hourly</label>
+          <label><input type="radio" name="inv-billing-mode" value="lumpsum" onchange="onBillingModeChange('inv')"> Lump sum</label>
         </div>
         <div class="services-header" id="inv-services-header"><span>Service</span><span>Description</span><span>Qty / Hrs</span><span>Rate ($)</span></div>
         <div id="inv-services-container"></div>
@@ -966,8 +969,8 @@ body {
 
         <div class="section-title gold">Services / Deliverables</div>
         <div class="billing-mode-row quot-billing">
-          <label><input type="radio" name="quot-billing-mode" value="hourly" checked onchange="onBillingModeChange('quot')"> Hourly — hours × rate</label>
-          <label><input type="radio" name="quot-billing-mode" value="lumpsum" onchange="onBillingModeChange('quot')"> Lump sum — fixed amount per line</label>
+          <label><input type="radio" name="quot-billing-mode" value="hourly" checked onchange="onBillingModeChange('quot')"> Hourly</label>
+          <label><input type="radio" name="quot-billing-mode" value="lumpsum" onchange="onBillingModeChange('quot')"> Lump sum</label>
         </div>
         <div class="services-header" id="quot-services-header"><span>Service</span><span>Deliverable</span><span>Hrs / Qty</span><span>Rate ($)</span></div>
         <div id="quot-services-container"></div>
@@ -1106,7 +1109,6 @@ body {
                   <div class="bank-line"><strong>Institution #</strong> <span id="quot-prev-inst">001</span></div>
                 </div>
                 <div class="quot-bottom-aside">
-                  <div class="quot-billing-hint" id="quot-prev-billing-hint">Pricing: Hourly (hours × rate)</div>
                   <div class="quot-cta">
                     <div class="quot-cta-title">Ready to get started?</div>
                     <div class="quot-cta-sub">Contact us to proceed with this proposal</div>
@@ -1482,9 +1484,6 @@ function updateQuotation() {
   document.getElementById('quot-prev-account').textContent = gv('quot-f-account');
   document.getElementById('quot-prev-transit').textContent = gv('quot-f-transit');
   document.getElementById('quot-prev-inst').textContent = gv('quot-f-inst');
-  document.getElementById('quot-prev-billing-hint').textContent = getQuotBillingMode() === 'lumpsum'
-    ? 'Pricing: Lump sum — fixed amount per line'
-    : 'Pricing: Hourly — hours × rate';
 
   const gst = parseFloat(gv('quot-f-gst')) || 0;
   const hst = parseFloat(gv('quot-f-hst')) || 0;
@@ -1531,13 +1530,16 @@ async function downloadPDF(docType) {
   btn.textContent = '⏳ Generating...';
   btn.disabled = true;
 
+  const shell = document.getElementById(shellId);
+  const scaler = shell ? shell.closest('.preview-scaler') : null;
+
   try {
     const { jsPDF } = window.jspdf;
-    const shell = document.getElementById(shellId);
-    const scaler = shell.closest('.preview-scaler');
 
-    scaler.style.transform = 'none';
-    scaler.style.marginBottom = '0';
+    if (scaler) {
+      scaler.style.transform = 'none';
+      scaler.style.marginBottom = '0';
+    }
     shell.style.width = '794px';
     shell.style.height = '1123px';
     shell.style.padding = '28px 30px';
@@ -1547,11 +1549,8 @@ async function downloadPDF(docType) {
     const canvas = await html2canvas(shell, {
       scale: 2, useCORS: true, allowTaint: true,
       backgroundColor: bgColor, logging: false,
-      width: 794, height: 1123, windowWidth: 794,
+      width: 794, height: 1123, windowWidth: 1200,
     });
-
-    scaler.style.transform = 'scale(0.78)';
-    scaler.style.marginBottom = 'calc((794px * 0.78 - 794px) * 0.5)';
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.88), 'JPEG', 0, 0, 210, 297);
@@ -1560,6 +1559,15 @@ async function downloadPDF(docType) {
   } catch (err) {
     alert('PDF generation failed: ' + err.message);
   } finally {
+    if (scaler) {
+      scaler.style.transform = 'scale(0.78)';
+      scaler.style.marginBottom = 'calc((794px * 0.78 - 794px) * 0.5)';
+    }
+    if (shell) {
+      shell.style.width = '';
+      shell.style.height = '';
+      shell.style.padding = '';
+    }
     btn.textContent = isInv ? '⬇ Download PDF' : '⬇ Download PDF';
     btn.disabled = false;
   }
