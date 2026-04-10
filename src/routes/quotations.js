@@ -70,7 +70,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 });
 
 // DELETE quotation
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const db = getDb();
     const existing = await db.select().from(quotations).where(eq(quotations.id, parseInt(req.params.id)));

@@ -437,8 +437,55 @@ body {
 
 .inv-footer { display: flex; justify-content: space-between; align-items: flex-start; }
 .inv-payment { font-size: 10.5px; color: #333; line-height: 1.8; }
-.quot-payment-block { margin-top: 14px; padding: 12px 14px; background: rgba(201, 162, 39, 0.08); border: 1px solid rgba(201, 162, 39, 0.25); border-radius: 8px; font-size: 10.5px; color: #e8e0c8; line-height: 1.75; }
-.quot-payment-block .quot-pay-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 9px; color: var(--gold); margin-bottom: 6px; }
+/* Quotation bottom: bank (left) + CTA / signature / billing note (right) */
+.quot-bottom-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  align-items: start;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+.quot-bottom-bank {
+  padding: 10px 12px;
+  background: #fffbf0;
+  border: 1px solid #e8d89a;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.65;
+  color: #2a2418;
+}
+.quot-bottom-bank .quot-pay-title {
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 8.5px;
+  color: #8a6a20; margin-bottom: 8px;
+}
+.quot-bottom-bank .bank-line { margin: 0 0 3px 0; }
+.quot-bottom-bank .bank-line strong { color: #1a1200; font-weight: 600; margin-right: 4px; }
+.quot-bottom-bank #quot-prev-bank { font-weight: 600; color: #1a1200; margin-bottom: 6px; line-height: 1.4; }
+.quot-bottom-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 10px;
+  min-width: 0;
+}
+.quot-bottom-aside .quot-cta { text-align: right; width: 100%; }
+.quot-bottom-aside .quot-cta-title { font-size: 11px; }
+.quot-bottom-aside .quot-cta-sub { font-size: 9px; }
+.quot-billing-hint {
+  font-size: 9px; color: #555; line-height: 1.45; text-align: right;
+  padding: 6px 10px; background: #f8f8f8; border-radius: 6px; border: 1px solid #eaeaea;
+  max-width: 100%;
+}
+.quot-bottom-aside .quot-signatory { margin-top: 4px; }
+@media (max-width: 1200px) {
+  .quot-bottom-split { grid-template-columns: 1fr; }
+  .quot-bottom-aside { align-items: flex-start; text-align: left; }
+  .quot-bottom-aside .quot-cta { text-align: left; }
+  .quot-billing-hint { text-align: left; }
+}
 .inv-pay-title { font-weight: 700; font-size: 12px; color: #111; margin-bottom: 3px; }
 .inv-thankyou { text-align: right; }
 .inv-ty-text { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
@@ -503,7 +550,7 @@ body {
 }
 .quot-strip-text { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #5a3a00; }
 
-.quot-body { background: #fff; padding: 22px 34px 26px; color: #111; flex: 1; display: flex; flex-direction: column; }
+.quot-body { background: #fff; padding: 22px 34px 20px; color: #111; flex: 1; display: flex; flex-direction: column; }
 
 .quot-to-section { margin-bottom: 18px; }
 .quot-to-header {
@@ -542,10 +589,10 @@ body {
 }
 .quot-total-final span:last-child { color: var(--gold-light); }
 
-.quot-terms { font-size: 9px; color: #888; line-height: 1.7; margin-bottom: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+.quot-terms { font-size: 9px; color: #888; line-height: 1.65; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 10px; }
 .quot-terms-title { font-weight: 700; color: #555; margin-bottom: 4px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 1px; }
 
-.quot-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.quot-body > .quot-bottom-split { margin-top: auto; }
 .quot-cta { }
 .quot-cta-title { font-size: 12px; font-weight: 700; color: #111; margin-bottom: 3px; }
 .quot-cta-sub { font-size: 9.5px; color: #666; }
@@ -1050,24 +1097,26 @@ body {
                 <div id="quot-prev-terms">1. This quotation is valid for 30 days from the date of issue.<br>2. A 50% deposit is required before commencement of work.<br>3. Final payment is due upon project completion before delivery.<br>4. Revisions beyond the agreed scope will be quoted separately.<br>5. All intellectual property transfers upon receipt of final payment.</div>
               </div>
 
-              <div class="quot-payment-block" id="quot-payment-block">
-                <div class="quot-pay-title">Payment details</div>
-                <div id="quot-prev-bank">Bank Of Montréal (Wisematic Inc.)</div>
-                <div>Account #: <span id="quot-prev-account">1975352</span></div>
-                <div>Transit #: <span id="quot-prev-transit">25592</span></div>
-                <div>Institution #: <span id="quot-prev-inst">001</span></div>
-              </div>
-
-              <div class="quot-footer">
-                <div class="quot-cta">
-                  <div class="quot-cta-title">Ready to get started?</div>
-                  <div class="quot-cta-sub">Contact us to proceed with this proposal</div>
+              <div class="quot-bottom-split" id="quot-payment-block">
+                <div class="quot-bottom-bank">
+                  <div class="quot-pay-title">Payment details</div>
+                  <div id="quot-prev-bank">Bank Of Montréal (Wisematic Inc.)</div>
+                  <div class="bank-line"><strong>Account #</strong> <span id="quot-prev-account">1975352</span></div>
+                  <div class="bank-line"><strong>Transit #</strong> <span id="quot-prev-transit">25592</span></div>
+                  <div class="bank-line"><strong>Institution #</strong> <span id="quot-prev-inst">001</span></div>
                 </div>
-                <div class="quot-signatory">
-                  <img id="quot-prev-sig-img" class="quot-sig-img" style="display:none;" crossorigin="anonymous">
-                  <span class="quot-sig-text" id="quot-prev-sig-text">Rupesh</span>
-                  <div class="quot-sig-name" id="quot-prev-dirname">Rupesh Kumar</div>
-                  <div class="quot-sig-title" id="quot-prev-dirtitle">Independent Developer</div>
+                <div class="quot-bottom-aside">
+                  <div class="quot-billing-hint" id="quot-prev-billing-hint">Pricing: Hourly (hours × rate)</div>
+                  <div class="quot-cta">
+                    <div class="quot-cta-title">Ready to get started?</div>
+                    <div class="quot-cta-sub">Contact us to proceed with this proposal</div>
+                  </div>
+                  <div class="quot-signatory">
+                    <img id="quot-prev-sig-img" class="quot-sig-img" style="display:none;" crossorigin="anonymous">
+                    <span class="quot-sig-text" id="quot-prev-sig-text">Rupesh</span>
+                    <div class="quot-sig-name" id="quot-prev-dirname">Rupesh Kumar</div>
+                    <div class="quot-sig-title" id="quot-prev-dirtitle">Independent Developer</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1433,6 +1482,9 @@ function updateQuotation() {
   document.getElementById('quot-prev-account').textContent = gv('quot-f-account');
   document.getElementById('quot-prev-transit').textContent = gv('quot-f-transit');
   document.getElementById('quot-prev-inst').textContent = gv('quot-f-inst');
+  document.getElementById('quot-prev-billing-hint').textContent = getQuotBillingMode() === 'lumpsum'
+    ? 'Pricing: Lump sum — fixed amount per line'
+    : 'Pricing: Hourly — hours × rate';
 
   const gst = parseFloat(gv('quot-f-gst')) || 0;
   const hst = parseFloat(gv('quot-f-hst')) || 0;
@@ -1718,12 +1770,15 @@ async function deleteDoc(type, id) {
       document.getElementById('inv-count-badge').textContent = docsData.invoices.length ? `(${docsData.invoices.length})` : '';
       document.getElementById('quot-count-badge').textContent = docsData.quotations.length ? `(${docsData.quotations.length})` : '';
     }
-  } catch { showToast('Delete failed'); }
+  } catch { showToast('Delete failed', 'error'); }
 }
 
 // ===== SAVE TO DATABASE =====
 async function saveToDatabase(docType) {
-  if (!currentUser) return; // only save when logged in
+  if (!getToken()) {
+    showToast('Sign in to save this document to your account', 'warn');
+    return;
+  }
   const isInv = docType === 'invoice';
   try {
     let payload, url;
@@ -1796,19 +1851,34 @@ async function saveToDatabase(docType) {
       body: JSON.stringify(payload),
     });
     if (res.ok) {
-      showToast('✓ Saved to your account');
+      showToast('✓ Saved to your account', 'success');
     } else {
-      const err = await res.json();
-      console.error('DB save failed:', err);
+      let detail = 'Could not save';
+      try {
+        const err = await res.json();
+        detail = err.error || detail;
+      } catch (_) {
+        detail = res.statusText || detail;
+      }
+      if (res.status === 401) {
+        clearToken();
+        currentUser = null;
+        showLoggedOut();
+        detail = 'Session expired — please sign in again to save';
+      }
+      console.error('DB save failed:', res.status, detail);
+      showToast(detail, 'error');
     }
   } catch (err) {
     console.error('Failed to save to database:', err);
+    showToast('Save failed: ' + (err.message || 'network error'), 'error');
   }
 }
 
-function showToast(msg) {
+function showToast(msg, variant) {
+  const bg = variant === 'error' ? '#dc2626' : variant === 'warn' ? '#ca8a04' : '#22c55e';
   const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#22c55e;color:#fff;padding:10px 18px;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:opacity 0.4s;';
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:' + bg + ';color:#fff;padding:10px 18px;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:opacity 0.4s;max-width:min(420px,92vw);line-height:1.35;';
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2600);
